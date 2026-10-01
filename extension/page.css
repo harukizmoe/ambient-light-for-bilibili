@@ -1,0 +1,158 @@
+/* Only layer backgrounds: never opacity/filter the page, cards, text, images or controls. */
+/* Crop effects use owned variables so original player inline styles survive,
+   including when the site clones a video element during source replacement. */
+html[data-biliglow-active] video[data-biliglow-bar-crop] {
+  clip-path: var(--biliglow-video-clip) !important;
+  transform: var(--biliglow-video-transform) !important;
+  transform-origin: 0 0 !important;
+}
+html[data-biliglow-active] body { isolation: isolate; }
+html[data-biliglow-active] #app,
+html[data-biliglow-active] #video-page-app { background-color: transparent !important; }
+[data-biliglow-stage] { isolation: isolate !important; }
+/* Bilibili's rounded player dimensions can leave ~2px on either side of a
+   contained 16:9 frame. Let the background light fill that space in ALL modes.
+   Keep the video at its native aspect ratio; never crop or stretch the image. */
+html[data-biliglow-active] .bpx-player-video-area,
+html[data-biliglow-active] .bpx-player-video-perch,
+html[data-biliglow-active] .bpx-player-video-wrap {
+  background: transparent !important;
+}
+/* The skeleton is a sibling behind the live player, not an ancestor of the
+   sending bar. Its solid bottom used to show through the transparent bar. */
+html[data-biliglow-active] #bilibili-player-placeholder,
+html[data-biliglow-active] #bilibili-player-placeholder-top,
+html[data-biliglow-active] #bilibili-player-placeholder-bottom,
+html[data-biliglow-active] #bilibili-player-placeholder-bottom-left,
+html[data-biliglow-active] #bilibili-player-placeholder-bottom-right {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+html[data-biliglow-active] #playerWrap,
+html[data-biliglow-active] #bilibili-player,
+html[data-biliglow-active] .bpx-docker-major,
+html[data-biliglow-active] .bpx-player-container,
+html[data-biliglow-active] .bpx-player-video-area {
+  box-shadow: none !important;
+}
+/* Page surfaces must have zero tint. Applying a translucent color to every
+   nested wrapper compounds opacity and creates the grey slabs seen in 0.2.0. */
+html[data-biliglow-active] {
+  --biliglow-glass: rgba(255,255,255,.10);
+  --biliglow-control-border: rgba(120,130,145,.25);
+}
+html[data-biliglow-active][data-biliglow-dark] {
+  --biliglow-control-border: rgba(255,255,255,.24);
+}
+html[data-biliglow-active] .bili-header__bar,
+html[data-biliglow-active] #viewbox_report,
+html[data-biliglow-active] #arc_toolbar_report,
+html[data-biliglow-active] .right-container,
+html[data-biliglow-active] .right-container-inner,
+html[data-biliglow-active] .up-info-container,
+html[data-biliglow-active] .video-desc-container,
+html[data-biliglow-active] .bpx-player-sending-area,
+html[data-biliglow-active] .bpx-player-sending-bar,
+html[data-biliglow-active] .bpx-player-sending-bar-left,
+html[data-biliglow-active] .bpx-player-sending-bar-right,
+html[data-biliglow-active] .bpx-player-video-info,
+html[data-biliglow-active] .bpx-player-dm-root,
+html[data-biliglow-active] .bpx-player-dm-input,
+html[data-biliglow-active] .bpx-player-dm-switch,
+html[data-biliglow-active] .bpx-player-dm-setting,
+html[data-biliglow-active] .bpx-player-video-inputbar,
+html[data-biliglow-active] .bpx-player-video-inputbar-wrap,
+html[data-biliglow-active] .bpx-player-dm-wrap,
+html[data-biliglow-active] .bpx-player-dm-btn-send,
+html[data-biliglow-active] .bpx-player-sending-area .bui-button-blue,
+html[data-biliglow-active] .bpx-player-sending-area::before,
+html[data-biliglow-active] .bpx-player-sending-area::after,
+html[data-biliglow-active] #danmukuBox,
+html[data-biliglow-active] .danmaku-wrap,
+html[data-biliglow-active] .bpx-docker-minor,
+html[data-biliglow-active] .bpx-player-auxiliary,
+html[data-biliglow-active] .bpx-player-collapse,
+html[data-biliglow-active] .bpx-player-collapse .bui-collapse-header,
+html[data-biliglow-active] .bpx-player-collapse .bui-collapse-body,
+html[data-biliglow-active] .bpx-player-dm-management,
+html[data-biliglow-active] .bpx-player-dm-function,
+html[data-biliglow-active] .bpx-player-dm-load-status,
+html[data-biliglow-active] .bpx-player-dm-wrap-child {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+/* The expanded danmaku list paints its own history button independently.
+   Keep history/calendar popovers intact; clear only the button and footer. */
+html[data-biliglow-active] .bpx-player-dm-btn-footer,
+html[data-biliglow-active] .bpx-player-dm-btn-history {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+/* The current video-pod UI serves multipart videos and collections. Clear the
+   surfaces in both list/grid views, including active/hover items, while keeping
+   cover images, the playing-gif and nested dialogs intact. */
+html[data-biliglow-active] .video-pod,
+html[data-biliglow-active] .video-pod__header,
+html[data-biliglow-active] .video-pod__body,
+html[data-biliglow-active] .video-pod__list,
+html[data-biliglow-active] .video-pod__item,
+html[data-biliglow-active] .video-pod .single-p,
+html[data-biliglow-active] .video-pod .multi-p,
+html[data-biliglow-active] .video-pod .page-list,
+html[data-biliglow-active] .video-pod .simple-base-item {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+html[data-biliglow-active] .video-pod__item.active,
+html[data-biliglow-active] .video-pod .simple-base-item.active {
+  color: var(--brand_blue, #00aeec) !important;
+}
+/* Recommendation expand/collapse and video tags are separate painted surfaces.
+   Do not clear the tag icon's SVG fill or the cover/playing-indicator images. */
+html[data-biliglow-active] .recommend-list-v1 .rec-footer,
+html[data-biliglow-active] .video-tag-container .tag-link,
+html[data-biliglow-active] .video-tag-container .show-more-btn {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+html[data-biliglow-active] .bpx-player-video-inputbar,
+html[data-biliglow-active] .bpx-player-dm-input,
+html[data-biliglow-active] .bpx-player-dm-btn-send,
+html[data-biliglow-active] .bpx-player-sending-area .bui-button-blue {
+  border-color: transparent !important;
+}
+/* One thin tint per control, not on the surrounding layout. Dropdowns and
+   dialogs deliberately retain their own surfaces and interaction states. */
+html[data-biliglow-active] #nav-searchform,
+html[data-biliglow-active] .up-info-container .follow-btn,
+html[data-biliglow-active] .upload-entry__trigger {
+  background: var(--biliglow-glass) !important;
+  border-color: var(--biliglow-control-border) !important;
+}
+html[data-biliglow-active] #nav-searchform { opacity: 1 !important; }
+html[data-biliglow-active] #nav-searchform .nav-search-content,
+html[data-biliglow-active] #nav-searchform .nav-search-input,
+html[data-biliglow-active] #nav-searchform .nav-search-btn {
+  background: transparent !important;
+}
+html[data-biliglow-active][data-biliglow-dark] .bili-header__bar,
+html[data-biliglow-active][data-biliglow-dark] #viewbox_report,
+html[data-biliglow-active][data-biliglow-dark] #arc_toolbar_report,
+html[data-biliglow-active][data-biliglow-dark] .right-container,
+html[data-biliglow-active][data-biliglow-dark] .video-desc-container,
+html[data-biliglow-active][data-biliglow-dark] .bpx-player-sending-area {
+  text-shadow: 0 1px 3px rgba(0,0,0,.65);
+}
+html[data-biliglow-dark] {
+  color-scheme: dark;
+  --bg1: #10141d; --bg2: #191f2b; --bg3: #252d3b;
+  --bg1_float: #191f2b; --bg2_float: #202838; --bg3_float: #293346;
+  --text1: #f3f6fb; --text2: #e0e7f1; --text3: #c5cfdd; --text4: #a4b2c5;
+  --line_light: #ffffff12; --line_regular: #ffffff1c; --line_bold: #ffffff30;
+  --graph_bg_regular: #1c2432; --graph_bg_thin: #171e29; --graph_bg_thick: #283246;
+  --brand_blue: #70c9dd;
+}
+html[data-biliglow-dark] body { background: #10141d !important; color: #dce4f0; }
+html[data-biliglow-dark] .bili-header__bar .default-entry { color: #dce4f0 !important; }

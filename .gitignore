@@ -1,0 +1,11 @@
+# Local-only files and credentials
+.DS_Store
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+node_modules/
+work/
+outputs/
+*.log
