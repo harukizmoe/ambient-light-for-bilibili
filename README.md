@@ -1,6 +1,6 @@
 # Ambient light for Bilibili
 
-为 Bilibili 桌面播放页添加随视频变化的氛围光。版本 **0.5.1**，Manifest V3，原生 JavaScript，无构建步骤或运行时依赖。
+为 Bilibili 桌面播放页添加随视频变化的氛围光。版本 **0.5.2**，Manifest V3，原生 JavaScript，无构建步骤或运行时依赖。
 
 ![扩展图标](extension/icons/128.png)
 
