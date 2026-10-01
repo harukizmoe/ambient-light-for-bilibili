@@ -14,7 +14,7 @@
 
 ## 安装与使用
 
-Chrome Web Store 与 Microsoft Edge Add-ons 正在准备发布，尚未提供商店安装链接。
+Microsoft Edge Add-ons 0.5.2 已于 2026-10-01 提交审核，状态为 In review。Chrome Web Store 尚待提交。两家商店暂未提供安装链接；[GitHub 发布候选包](https://github.com/tosya301/ambient-light-for-bilibili/releases/tag/v0.5.2)可用于本地加载。
 
 本地安装：下载本仓库，在浏览器扩展管理页打开开发者模式，选择“加载已解压的扩展”，加载 **extension** 文件夹，然后刷新 Bilibili 播放页面。
 
