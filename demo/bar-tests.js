@@ -4,13 +4,14 @@ const barResults=document.createElement('output');barResults.id='bar-results';
 document.querySelector('.fixture-actions').append(testBarsButton,barResults);
 testBarsButton.addEventListener('click',async()=>{
   const original=await BiliGlow.storage.get(),oldMode=player.dataset.screen,fixture=document.querySelector('#bar-fixture'),oldFixture=fixture.value;
+  if(!original.privacyAccepted){barResults.textContent='请先在氛围光设置中阅读说明并同意开启，再运行自检。';barResults.dataset.passed='false';return;}
   const results=[],check=(ok,label)=>{results.push(`${ok?'✓':'✗'} ${label}`);barResults.textContent=results.join('\n');};
   const v=()=>document.querySelector('video'),cropped=()=>getComputedStyle(v()).clipPath.startsWith('inset(');
   const settle=()=>wait(2300);
   const sourceBars=value=>{fixture.value=value;};
   testBarsButton.disabled=true;
   try{
-    sourceBars('vertical');await BiliGlow.storage.set({...BiliGlow.defaults,removeVerticalBars:true});theater(false);window.scrollTo({top:0,behavior:'instant'});await settle();
+    sourceBars('vertical');await BiliGlow.storage.set({...BiliGlow.defaults,privacyAccepted:original.privacyAccepted,removeVerticalBars:true});theater(false);window.scrollTo({top:0,behavior:'instant'});await settle();
     check(!cropped(),'普通模式不裁视频');
     theater(true);window.scrollTo({top:0,behavior:'instant'});await settle();
     check(cropped(),'宽屏自动识别视频内嵌左右黑边');

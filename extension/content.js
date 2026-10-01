@@ -66,7 +66,7 @@
     root.setAttribute('aria-hidden','true');
     // A negative child of the isolated body paints AFTER its background but BEFORE page content.
     root.style.cssText='position:fixed;inset:0;pointer-events:none!important;z-index:-1;overflow:hidden;contain:strict;display:none;';
-    root.dataset.version='0.5.0';
+    root.dataset.version='0.5.1';
     const shadow=root.attachShadow({mode:'open'});
     canvas=document.createElement('canvas');canvas.width=256;canvas.height=144;
     canvas.style.cssText='position:absolute;pointer-events:none;transform-origin:center;';shadow.append(canvas);
@@ -83,13 +83,13 @@
   function togglePanel(open){
     if(open&&!panel){panel=B.mountPanel(panelHost.attachShadow({mode:'open'}),{closable:true,onClose:()=>togglePanel(false)});panel.setStatus(status.text,status.error);panel.setBarStatus(barStatus);}
     panelHost.hidden=!open;launcher.setAttribute('aria-expanded',String(open));
-    if(open)panelHost.shadowRoot.querySelector('#enabled').focus();else launcher.focus();
+    if(open)panel.focus();else launcher.focus();
   }
   function cancelFrames(){
     if(frameId!==null&&video?.cancelVideoFrameCallback)video.cancelVideoFrameCallback(frameId);
     clearTimeout(timerId);frameId=null;timerId=null;nextPaint=0;
   }
-  function allowed(){return supported&&settings.enabled&&video?.isConnected&&!document.hidden&&visible&&!blocked;}
+  function allowed(){return supported&&B.isActive(settings)&&video?.isConnected&&!document.hidden&&visible&&!blocked;}
   function startFrames(){
     if(!allowed()||video.paused||video.ended||frameId!==null||timerId!==null)return;
     if(video.requestVideoFrameCallback){frameId=video.requestVideoFrameCallback(tick);}
@@ -143,11 +143,12 @@
   function layout(){
     layoutDirty=false;
     if(!root)return;
+    if(!B.isActive(settings)){visible=false;root.style.display='none';cancelFrames();return;}
     const fs=document.fullscreenElement;
     const container=video?.closest('.bpx-player-container');
     const screen=container?.getAttribute('data-screen');
     const ownFullscreen=fs&&fs.contains(video)&&fs.tagName!=='VIDEO';
-    const active=supported&&settings.enabled&&Boolean(video?.isConnected)&&(!fs||Boolean(ownFullscreen));
+    const active=supported&&B.isActive(settings)&&Boolean(video?.isConnected)&&(!fs||Boolean(ownFullscreen));
     document.documentElement.toggleAttribute('data-biliglow-active',active);
     const nextStage=active?(ownFullscreen?fs:screen==='web'?container:null):null;
     setStage(nextStage);
@@ -205,8 +206,19 @@
   }
   function reconcile(){
     supported=isSupported();
+    if(supported)ensureUI();
+    if(!B.isActive(settings)){
+      // Before consent (or while disabled), only inspect the route and show our entry point.
+      // Never query or bind a player; revoke also cancels its pending frame callback now.
+      bind(null);cancelFrames();setStage(null);visible=false;
+      document.documentElement.removeAttribute('data-biliglow-active');
+      document.documentElement.removeAttribute('data-biliglow-dark');
+      if(root){root.style.display='none';canvas.width=256;painted=false;}
+      if(ui){if(ui.parentNode!==document.documentElement)document.documentElement.append(ui);ui.style.display=supported?'block':'none';}
+      setStatus(settings.privacyAccepted?'氛围光已关闭':'尚未开启 · 请先确认本地处理说明');
+      syncCommentSurfaces();return;
+    }
     if(supported){
-      ensureUI();
       // Query only on playback routes, select the largest visible video instead of preview players.
       let best=null,area=0;
       for(const candidate of document.querySelectorAll('video')){
@@ -215,13 +227,15 @@
       }
       bind(best);
     }else bind(null);
-    document.documentElement.toggleAttribute('data-biliglow-dark',supported&&Boolean(video)&&settings.enabled&&settings.dark);
+    document.documentElement.toggleAttribute('data-biliglow-dark',supported&&Boolean(video)&&B.isActive(settings)&&settings.dark);
     if(root){layoutDirty=true;layout();if(allowed()){if(!painted)draw(performance.now(),true);startFrames();}}
     syncCommentSurfaces();
   }
-  function apply(next){settings=next;reconcile();invalidate();}
-  B.storage.get().then(apply).catch(()=>setStatus('设置读取失败，当前使用默认值',true));
-  B.storage.subscribe(apply);
+  let settingsRevision=0;
+  function apply(next){settingsRevision++;settings=next;reconcile();invalidate();}
+  const initialRevision=settingsRevision;
+  B.storage.get().then(next=>{if(settingsRevision===initialRevision)apply(next);}).catch(()=>setStatus('设置读取失败，当前使用默认值',true));
+  B.storage.subscribe(apply,{onRevoke:()=>apply({...settings,privacyAccepted:false})});
   window.addEventListener('resize',invalidate,{passive:true});
   window.addEventListener('scroll',invalidate,{passive:true,capture:true});
   document.addEventListener('fullscreenchange',invalidate);

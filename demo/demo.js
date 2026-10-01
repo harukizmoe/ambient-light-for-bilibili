@@ -46,8 +46,9 @@ document.querySelector('#run-tests').addEventListener('click',async event=>{
   window.scrollTo({top:0,behavior:'instant'});
   const out=document.querySelector('#test-results'),button=event.currentTarget;button.disabled=true;const original=await BiliGlow.storage.get();const results=[];
   const check=(ok,text)=>{results.push(`${ok?'✓':'✗'} ${text}`);out.textContent=results.join('\n');};
+  if(!original.privacyAccepted){out.textContent='请先打开氛围光设置，阅读说明并点击同意开启，再运行自检。';button.disabled=false;out.dataset.passed='false';return;}
   try{
-    await BiliGlow.storage.set({...BiliGlow.defaults});player.classList.remove('portrait');
+    await BiliGlow.storage.set({...BiliGlow.defaults,privacyAccepted:original.privacyAccepted});player.classList.remove('portrait');
     theater(false);
     const largeSurfaces=['.bili-header__bar','#viewbox_report','.right-container','#arc_toolbar_report','.bpx-player-sending-area','.bpx-player-sending-bar','.bpx-player-video-info','.bpx-player-dm-root','.bpx-player-dm-input'];
     const alpha=el=>{const c=getComputedStyle(el).backgroundColor;return c.startsWith('rgba')?Number(c.split(',').pop().replace(')','')):1;};
@@ -68,7 +69,7 @@ document.querySelector('#run-tests').addEventListener('click',async event=>{
     await BiliGlow.storage.set({enabled:false});
     check(largeSurfaces.every(selector=>alpha(document.querySelector(selector))===1),'关闭光效后恢复原有页面底色');
     check(alpha(document.querySelector('#bilibili-player-placeholder-bottom'))===1&&alpha(document.querySelector('.bpx-docker-minor'))===1&&getComputedStyle(player).boxShadow!=='none','关闭光效恢复原生占位底板、列表底色和播放器阴影');
-    await BiliGlow.storage.set({...BiliGlow.defaults});
+    await BiliGlow.storage.set({...BiliGlow.defaults,privacyAccepted:original.privacyAccepted});
     if(removed){player.querySelector('.bpx-player-video-area').prepend(removed);connect(removed);removed=null;}
     await document.querySelector('video').play();await wait(1250);let start=count();await wait(700);
     check(count()>start+3,'播放时持续更新视频光色');
@@ -113,7 +114,9 @@ document.querySelector('#run-tests').addEventListener('click',async event=>{
   finally{await BiliGlow.storage.set(original);button.disabled=false;out.dataset.passed=String(results.every(r=>r.startsWith('✓')));}
 });
 document.querySelector('#cross-origin').addEventListener('click',async()=>{
-  const out=document.querySelector('#cors-results');const v=document.querySelector('video');
+  const out=document.querySelector('#cors-results');
+  if(!(await BiliGlow.storage.get()).privacyAccepted){out.textContent='请先在氛围光设置中阅读说明并同意开启。';return;}
+  const v=document.querySelector('video');
   if(!v){out.textContent='请先恢复播放器';return;}
   try{
     v.srcObject=null;v.removeAttribute('crossorigin');v.src='http://localhost:8765/demo/test-colors.mp4';v.loop=true;

@@ -2,6 +2,7 @@
 // Exercises the actual production controls and rendered preview, including time.
 document.querySelector('#run-ui-tests').addEventListener('click',async event=>{
  const button=event.currentTarget,out=document.querySelector('#ui-results'),original=await BiliGlow.storage.get();
+ if(!original.privacyAccepted){out.textContent='请先阅读面板中的本地处理说明并同意开启，再运行自检。';out.dataset.passed='false';return;}
  const root=document.querySelector('#light').shadowRoot,preview=root.querySelector('.effect-preview');
  const video=root.querySelector('.preview-video'),glow=root.querySelector('.preview-glow');
  const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms)),results=[];
@@ -40,7 +41,7 @@ document.querySelector('#run-ui-tests').addEventListener('click',async event=>{
   check(!root.querySelector('#enabled').checked&&root.querySelector('[data-enabled-state]').textContent==='已关闭','总开关与状态文字同步');
   root.querySelector('.reset').click();await wait(80);
   const restored=await BiliGlow.storage.get();
-  check(Object.keys(BiliGlow.defaults).every(key=>restored[key]===BiliGlow.defaults[key]),'恢复默认同时还原所有设置与开关');
+  check(Object.keys(BiliGlow.defaults).every(key=>restored[key]===(key==='privacyAccepted'?original.privacyAccepted:BiliGlow.defaults[key])),'恢复默认还原光效设置，保留已确认的同意状态');
  }catch(error){check(false,error.message);}finally{
   await BiliGlow.storage.set(original);button.disabled=false;
   out.dataset.passed=String(results.every(s=>s.startsWith('✓')));
