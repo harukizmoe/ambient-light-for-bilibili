@@ -1,14 +1,14 @@
 (() => {
   'use strict';
   if (document.querySelector('[data-biliglow-root]')) return;
-  const B=globalThis.BiliGlow;
+  const B=globalThis.BiliGlow,P=globalThis.BiliGlowPlayer;
   let settings={...B.defaults},video=null,cleanVideo=()=>{},frameId=null,timerId=null,layoutId=null;
   let lastFrame=0,nextPaint=0,needsDraw=false,painted=false,visible=false,blocked=false,supported=false,layoutDirty=true,frames=0;
   let status={text:'等待播放器',error:false},ui=null,panel=null,panelHost=null,launcher=null,root=null,canvas=null,ctx=null;
   let stage=null,mode='normal',barEffect=null,barStatus='宽屏去边已关闭';
   const setBarStatus=text=>{barStatus=text;panel?.setBarStatus(text);};
-  const demo=location.hostname==='127.0.0.1'||location.hostname==='localhost';
-  const isSupported=()=>demo||/^\/(video\/|bangumi\/play\/)/.test(location.pathname);
+  let kind=P.pageKind(location);
+  const isSupported=()=>{kind=P.pageKind(location);return Boolean(kind);};
   // Bilibili comments live in open shadow roots. Page CSS cannot reach the
   // editor or the fixed bottom wrapper; changing inherited --bg1/--bg3 would
   // also erase emoji menus and dialogs. Only patch these observed surfaces.
@@ -36,7 +36,7 @@
     for(const [host,style] of commentStyles){
       if(!active||!host.isConnected){style.remove();commentStyles.delete(host);}
     }
-    if(!active)return;
+    if(!active||kind==='live')return;
     function visit(scope){
       for(const host of scope.querySelectorAll(commentHosts)){
         const shadow=host.shadowRoot;
@@ -70,7 +70,7 @@
     root.setAttribute('aria-hidden','true');
     // A negative child of the isolated body paints AFTER its background but BEFORE page content.
     root.style.cssText='position:fixed;inset:0;pointer-events:none!important;z-index:-1;overflow:hidden;contain:strict;display:none;';
-    root.dataset.version='0.5.3';
+    root.dataset.version='0.5.3.2';
     const shadow=root.attachShadow({mode:'open'});
     canvas=document.createElement('canvas');canvas.width=256;canvas.height=144;
     canvas.style.cssText='position:absolute;pointer-events:none;transform-origin:center;';shadow.append(canvas);
@@ -93,7 +93,7 @@
     if(frameId!==null&&video?.cancelVideoFrameCallback)video.cancelVideoFrameCallback(frameId);
     clearTimeout(timerId);frameId=null;timerId=null;nextPaint=0;
   }
-  function allowed(){return supported&&B.isActive(settings)&&video?.isConnected&&!document.hidden&&visible&&!blocked;}
+  function allowed(){return supported&&B.isActive(settings)&&video?.isConnected&&!(kind==='live'&&(video.ended||video.readyState<2))&&!document.hidden&&visible&&!blocked;}
   function startFrames(){
     if(!allowed()||video.paused||video.ended||frameId!==null||timerId!==null)return;
     if(video.requestVideoFrameCallback){frameId=video.requestVideoFrameCallback(tick);}
@@ -126,6 +126,7 @@
       root.style.display='block';root.style.visibility='visible';updatePlaybackStatus();
     }catch(error){
       blocked=true;root.style.display='none';cancelFrames();
+      if(kind==='live'){document.documentElement.removeAttribute('data-biliglow-active');document.documentElement.removeAttribute('data-biliglow-dark');}
       setStatus('此视频暂时无法生成光效，播放不受影响',true);
       console.warn('[BiliGlow] Video frame unavailable:',error.name);
     }
@@ -136,7 +137,7 @@
     layoutId=requestAnimationFrame(()=>{layoutId=null;layout();if(allowed()){if(needsDraw||!painted)draw(performance.now(),true);startFrames();}needsDraw=false;});
   }
   function updatePlaybackStatus(){
-    const label=mode==='theater'?'宽屏环绕':mode==='fullscreen'?'全屏环绕':'背景透光';
+    const label=mode==='theater'?'宽屏环绕':mode==='fullscreen'?'全屏环绕':kind==='live'?'直播透光':'背景透光';
     setStatus(video.paused?`${label} · 已暂停`:`${label} · 上限 ${settings.fps} fps`);
   }
   function setStage(next){
@@ -149,14 +150,16 @@
     if(!root)return;
     if(!B.isActive(settings)){visible=false;root.style.display='none';cancelFrames();return;}
     const fs=document.fullscreenElement;
-    const container=video?.closest('.bpx-player-container');
-    const screen=container?.getAttribute('data-screen');
-    const ownFullscreen=fs&&fs.contains(video)&&fs.tagName!=='VIDEO';
-    const active=supported&&B.isActive(settings)&&Boolean(video?.isConnected)&&(!fs||Boolean(ownFullscreen));
+    const presentation=P.presentation(video,kind,fs);
+    const ownFullscreen=presentation.native;
+    const ready=kind!=='live'||Boolean(video?.readyState>=2&&!video.ended&&!blocked);
+    const active=supported&&B.isActive(settings)&&Boolean(video?.isConnected)&&ready&&(!fs||Boolean(ownFullscreen));
     document.documentElement.toggleAttribute('data-biliglow-active',active);
-    const nextStage=active?(ownFullscreen?fs:screen==='web'?container:null):null;
+    document.documentElement.toggleAttribute('data-biliglow-live',kind==='live'&&active);
+    document.documentElement.toggleAttribute('data-biliglow-dark',active&&settings.dark);
+    const nextStage=active?presentation.stage:null;
     setStage(nextStage);
-    mode=ownFullscreen||screen==='web'?'fullscreen':screen==='wide'?'theater':'normal';
+    mode=presentation.mode;
     barEffect?.configure({...settings,enabled:active},mode);
     const croppedRect=barEffect?.layout();
     root.dataset.mode=mode;
@@ -167,7 +170,7 @@
     ui.style.display=supported&&(!fs||Boolean(ownFullscreen))?'block':'none';
     if(!active||document.hidden){
       visible=false;root.style.display='none';cancelFrames();
-      setStatus(!settings.enabled?'氛围光已关闭':document.hidden?'后台待机':fs?'系统全屏 · 氛围光待机':'等待播放器');return;
+      setStatus(blocked?'此视频暂时无法生成光效，播放不受影响':!settings.enabled?'氛围光已关闭':document.hidden?'后台待机':fs?'系统全屏 · 氛围光待机':kind==='live'?'等待直播画面 · 停播时自动待机':'等待播放器',blocked);return;
     }
     const r=video.getBoundingClientRect();
     visible=r.width>=160&&r.height>=90&&r.bottom>0&&r.top<innerHeight&&r.right>0&&r.left<innerWidth;
@@ -196,7 +199,8 @@
     cancelFrames();cleanVideo();barEffect?.dispose();barEffect=null;resizeObserver.disconnect();modeObserver.disconnect();setStage(null);video=next;painted=false;lastFrame=0;blocked=false;
     if(canvas){canvas.width=256;root.style.display='none';}
     if(!next){setStatus('等待播放器');return;}
-    barEffect=globalThis.BiliGlowVideoBars.create(next,{onChange:()=>{painted=false;invalidate(true);},onStatus:setBarStatus});
+    if(kind==='live')setBarStatus('直播保留完整画面 · 自动去边仅用于视频宽屏');
+    else barEffect=globalThis.BiliGlowVideoBars.create(next,{onChange:()=>{painted=false;invalidate(true);},onStatus:setBarStatus});
     const refresh=()=>{blocked=false;invalidate(true);};
     const pause=()=>{cancelFrames();invalidate(true);};
     const reset=()=>{barEffect?.reset();painted=false;lastFrame=0;blocked=false;canvas.width=256;root.style.display='none';setStatus('等待视频加载');invalidate();};
@@ -205,8 +209,13 @@
     for(const [type,fn] of Object.entries(events))next.addEventListener(type,fn);
     cleanVideo=()=>{for(const [type,fn] of Object.entries(events))next.removeEventListener(type,fn);};
     resizeObserver.observe(next);invalidate();
-    const container=next.closest('.bpx-player-container');
-    if(container)modeObserver.observe(container,{attributes:true,attributeFilter:['data-screen']});
+    if(kind==='live'){
+      for(let el=next.parentElement;el&&el!==document.body;el=el.parentElement)
+        modeObserver.observe(el,{attributes:true,attributeFilter:['class','style']});
+    }else{
+      const container=next.closest('.bpx-player-container');
+      if(container)modeObserver.observe(container,{attributes:true,attributeFilter:['data-screen']});
+    }
   }
   function reconcile(){
     supported=isSupported();
@@ -217,19 +226,14 @@
       bind(null);cancelFrames();setStage(null);visible=false;
       document.documentElement.removeAttribute('data-biliglow-active');
       document.documentElement.removeAttribute('data-biliglow-dark');
+      document.documentElement.removeAttribute('data-biliglow-live');
       if(root){root.style.display='none';canvas.width=256;painted=false;}
       if(ui){if(ui.parentNode!==document.documentElement)document.documentElement.append(ui);ui.style.display=supported?'block':'none';}
       setStatus(settings.privacyAccepted?'氛围光已关闭':'尚未开启 · 请先确认本地处理说明');
       syncCommentSurfaces();return;
     }
     if(supported){
-      // Query only on playback routes, select the largest visible video instead of preview players.
-      let best=null,area=0;
-      for(const candidate of document.querySelectorAll('video')){
-        const r=candidate.getBoundingClientRect(),a=r.width*r.height;
-        if(a>area&&r.width>=160&&r.height>=90&&getComputedStyle(candidate).visibility!=='hidden'){best=candidate;area=a;}
-      }
-      bind(best);
+      bind(P.selectVideo(document,kind));
     }else bind(null);
     document.documentElement.toggleAttribute('data-biliglow-dark',supported&&Boolean(video)&&B.isActive(settings)&&settings.dark);
     if(root){layoutDirty=true;layout();if(allowed()){if(!painted)draw(performance.now(),true);startFrames();}}

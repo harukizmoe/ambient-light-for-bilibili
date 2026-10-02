@@ -95,7 +95,7 @@ test('local and cross-tab revocation notify immediately and discard stale asynch
   assert.equal(received.length,1);assert.equal(received[0].privacyAccepted,false);assert.equal(received[0].spread,310);
 });
 
-function contentHarness(initial,delayed=false){
+function contentHarness(initial,delayed=false,live=false){
   const counts={videoQueries:0,videoReads:0,draws:0,barSamples:0,barDisposals:0,cancelled:0};
   const rafs=new Map(),frames=new Map(),intervals=[];let nextId=0,onSettings,resolveInitial;
   class Element{
@@ -124,11 +124,11 @@ function contentHarness(initial,delayed=false){
   const html=new Element('html'),body=new Element('body');
   const document={documentElement:html,body,hidden:false,fullscreenElement:null,
     createElement:tag=>new Element(tag),querySelector(){return null;},addEventListener(){},
-    querySelectorAll(selector){if(selector==='video'){counts.videoQueries++;return [video];}return [];}
+    querySelectorAll(selector){if(selector==='video'||selector==='#live-player video'){counts.videoQueries++;return [video];}return [];}
   };
   const initialPromise=delayed?new Promise(resolve=>{resolveInitial=resolve;}):Promise.resolve(B.sanitize(initial));
   const api={...B,storage:{get:()=>initialPromise,subscribe(fn){onSettings=fn;}}};
-  const context=vm.createContext({BiliGlow:api,document,location:{hostname:'www.bilibili.com',pathname:'/video/example'},
+  const context=vm.createContext({BiliGlow:api,document,location:live?{hostname:'live.bilibili.com',pathname:'/25034104'}:{hostname:'www.bilibili.com',pathname:'/video/example'},
     window:{addEventListener(){}},innerWidth:1280,innerHeight:900,
     getComputedStyle:()=>({objectFit:'contain',visibility:'visible'}),performance:{now:()=>100},console,
     requestAnimationFrame(fn){const id=++nextId;rafs.set(id,fn);return id;},
@@ -138,6 +138,7 @@ function contentHarness(initial,delayed=false){
     BiliGlowVideoBars:{create(){return {crop:{top:0,bottom:0,left:0,right:0},configure(){},layout(){return null;},
       sample(){counts.barSamples++;},reset(){},dispose(){counts.barDisposals++;}};}}
   });
+  vm.runInContext(source('player.js'),context);
   vm.runInContext(source('content.js'),context);
   return {counts,html,body,frames,video,context,
     async ready(){await initialPromise;await Promise.resolve();},
@@ -178,4 +179,16 @@ test('a stale startup storage result cannot restore consent after a newer revoca
   h.resolveInitial({privacyAccepted:true,enabled:true});await h.ready();h.flush();h.reconcile();
   assert.equal(h.counts.videoQueries,0);assert.equal(h.counts.draws,0);
   assert.equal(h.html.hasAttribute('data-biliglow-active'),false);
+});
+
+
+test('live room honors consent, never creates crop analysis, and revokes immediately',async()=>{
+  const h=contentHarness({enabled:true},false,true);await h.ready();h.flush();h.reconcile();
+  assert.equal(h.counts.videoQueries,0);assert.equal(h.counts.videoReads,0);
+  h.change({privacyAccepted:true,enabled:true,removeHorizontalBars:true,removeVerticalBars:true});h.flush();
+  assert.ok(h.counts.draws>0);assert.equal(h.counts.barSamples,0);
+  assert.equal(h.html.hasAttribute('data-biliglow-live'),true);
+  h.change({privacyAccepted:false,enabled:true});h.flush();
+  assert.equal(h.frames.size,0);assert.equal(h.html.hasAttribute('data-biliglow-active'),false);
+  assert.equal(h.html.hasAttribute('data-biliglow-live'),false);
 });

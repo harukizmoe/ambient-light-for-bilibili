@@ -1,0 +1,19 @@
+{
+  "base_commit": "753b8b2",
+  "version": "0.5.3.2",
+  "archive": "Ambient-light-for-Bilibili-0.5.3.2.zip",
+  "sha256": "99aac8954af559c34b1d8dc7537d71a8ac9b01742070ea7a681c01a64a61a380",
+  "bytes": 238301,
+  "archive_matches_extension_files": true,
+  "file_count": 19,
+  "node_tests_passed": 39,
+  "css_browser_evidence": "qa/sc-surfaces-checks.json",
+  "prior_0.5.3.1_browser_checks": {
+    "video": 28,
+    "live": 19
+  },
+  "real_bilibili_extension_injection": "0.5.3.1 observed; 0.5.3.2 reload and host verification pending",
+  "release_tag": "v0.5.3.2",
+  "identical_to_user_approved_local_archive": true,
+  "user_feedback": "User confirmed current local version is acceptable and authorized GitHub publication."
+}

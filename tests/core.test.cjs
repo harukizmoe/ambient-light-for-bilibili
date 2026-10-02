@@ -90,6 +90,6 @@ test('bar removal choices persist independently and survive light preset changes
 });
 test('MV3 package references real files and only requests storage',()=>{
   const base=__dirname+'/../extension/';const m=JSON.parse(fs.readFileSync(base+'manifest.json'));
-  assert.equal(m.manifest_version,3);assert.deepEqual(m.permissions,['storage']);assert.deepEqual(m.content_scripts[0].matches,['https://www.bilibili.com/*']);
+  assert.equal(m.manifest_version,3);assert.deepEqual(m.permissions,['storage']);assert.deepEqual(m.content_scripts[0].matches,['https://www.bilibili.com/*','https://live.bilibili.com/*']);
   for(const path of [...Object.values(m.icons),...m.content_scripts[0].js,...m.content_scripts[0].css,m.action.default_popup,m.background.service_worker])assert.ok(fs.existsSync(base+path),path);
 });

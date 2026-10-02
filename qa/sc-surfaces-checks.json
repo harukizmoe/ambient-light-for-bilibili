@@ -1,0 +1,146 @@
+{
+  "version": "0.5.3.2",
+  "date": "2026-10-02",
+  "environment": "Chrome localhost static fixture, production extension/page.css, based on inspected live.bilibili.com DOM; not updated extension injection",
+  "on": {
+    ".a-content-text": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(243, 246, 251)",
+      "display": "block",
+      "image": "none",
+      "opacity": "1"
+    },
+    ".announce-cntr": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(220, 228, 240)",
+      "display": "block",
+      "image": "none",
+      "opacity": "1"
+    },
+    ".bili-dyn-card-live__body": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(243, 246, 251)",
+      "display": "block",
+      "image": "none",
+      "opacity": "1"
+    },
+    ".bili-dyn-card-live__cover": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(220, 228, 240)",
+      "display": "block",
+      "image": "none",
+      "opacity": "1"
+    },
+    ".bili-dyn-item": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(220, 228, 240)",
+      "display": "block",
+      "image": "none",
+      "opacity": "1"
+    },
+    ".card-item": {
+      "background": "rgb(147, 171, 211)",
+      "color": "rgb(255, 255, 255)",
+      "display": "block",
+      "image": "none",
+      "opacity": "1"
+    },
+    ".detail-info .mask": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(220, 228, 240)",
+      "display": "block",
+      "image": "none",
+      "opacity": "1"
+    },
+    ".face-img": {
+      "background": "rgb(217, 236, 255)",
+      "color": "rgb(55, 114, 183)",
+      "display": "grid",
+      "image": "none",
+      "opacity": "1"
+    },
+    ".flip-view-image": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(255, 255, 255)",
+      "display": "block",
+      "image": "linear-gradient(100deg, rgb(29, 25, 121), rgb(213, 49, 144))",
+      "opacity": "1"
+    },
+    ".menu-sample": {
+      "background": "rgb(25, 31, 43)",
+      "color": "rgb(243, 246, 251)",
+      "display": "block",
+      "image": "none",
+      "opacity": "1"
+    },
+    ".new-tabs": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(251, 114, 153)",
+      "display": "block",
+      "image": "none",
+      "opacity": "1"
+    },
+    ".pay-note-panel": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(220, 228, 240)",
+      "display": "block",
+      "image": "none",
+      "opacity": "1"
+    },
+    ".room-info-cntr": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(220, 228, 240)",
+      "display": "block",
+      "image": "none",
+      "opacity": "1"
+    },
+    ".room-introduction": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(243, 246, 251)",
+      "display": "block",
+      "image": "none",
+      "opacity": "1"
+    },
+    ".totle": {
+      "background": "rgb(42, 96, 178)",
+      "color": "rgb(255, 255, 255)",
+      "display": "block",
+      "image": "none",
+      "opacity": "1"
+    }
+  },
+  "expanded": {
+    "display": "block",
+    "mask": "none",
+    "maskColor": "rgba(0, 0, 0, 0)"
+  },
+  "remount": {
+    "background": "rgba(0, 0, 0, 0)",
+    "chip": "rgb(42, 96, 178)",
+    "mounted": true
+  },
+  "light": {
+    "announcement": "rgb(47, 50, 56)",
+    "dark": false,
+    "panel": "rgba(0, 0, 0, 0)"
+  },
+  "off": {
+    ".announce-cntr": "rgb(255, 255, 255)",
+    ".bili-dyn-card-live__body": "rgb(255, 255, 255)",
+    ".bili-dyn-item": "rgb(255, 255, 255)",
+    ".pay-note-panel": "rgb(238, 238, 238)",
+    ".room-info-cntr": "rgb(255, 255, 255)"
+  },
+  "images": [
+    {
+      "alt": "示例头像",
+      "loaded": true,
+      "opacity": "1"
+    },
+    {
+      "alt": "示例直播封面",
+      "loaded": true,
+      "opacity": "1"
+    }
+  ]
+}

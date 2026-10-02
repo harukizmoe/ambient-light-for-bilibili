@@ -156,3 +156,73 @@ html[data-biliglow-dark] {
 }
 html[data-biliglow-dark] body { background: #10141d !important; color: #dce4f0; }
 html[data-biliglow-dark] .bili-header__bar .default-entry { color: #dce4f0 !important; }
+
+/* Live-room surfaces observed on the desktop room player. Scope to an active
+   video frame: offline rooms, menus, payment dialogs and gift art stay native. */
+html[data-biliglow-active][data-biliglow-live] :is(
+  .room-bg, .live-room-app, .app-content, .app-body,
+  .link-navbar-ctnr, .link-navbar, #head-info-vm,
+  #fullscreen-container,
+  #live-player-ctnr, #live-player, .player-section,
+  #gift-control-vm, #aside-area-vm, #rank-list-vm, #rank-list-ctnr-box,
+  .chat-history-panel, #chat-history-list, .chat-overlay-layer,
+  #chat-control-panel-vm, .chat-input-ctnr
+) { background: transparent !important; box-shadow: none !important; }
+/* Pseudo-elements must be separate: they are not valid within :is(). */
+html[data-biliglow-active][data-biliglow-live] #fullscreen-container::before {
+  background: transparent !important;
+}
+html[data-biliglow-active][data-biliglow-live] :is(#head-info-vm,#gift-control-vm,#aside-area-vm,#rank-list-vm,#rank-list-ctnr-box,#chat-control-panel-vm) {
+  border-color: var(--biliglow-control-border) !important;
+}
+html[data-biliglow-active][data-biliglow-live] .chat-input-ctnr {
+  background: var(--biliglow-glass) !important;
+  border-color: var(--biliglow-control-border) !important;
+}
+html[data-biliglow-active][data-biliglow-live] .chat-input-ctnr textarea {
+  background: transparent !important;
+}
+/* Ordinary text needs a foreground for the dark canvas; medals, colored
+   names, emotes, gift artwork, and the actual video are never faded/filtered. */
+html[data-biliglow-active][data-biliglow-live][data-biliglow-dark] :is(
+  #chat-items .danmaku-item-right, .chat-input-ctnr textarea,
+  .link-navbar .left-part a, .link-navbar .right-part,
+  #head-info-vm, #gift-control-vm, #chat-control-panel-vm
+) { color: #f3f6fb !important; text-shadow: 0 1px 3px #000c, 0 0 2px #0009; }
+html[data-biliglow-active][data-biliglow-live][data-biliglow-dark] #chat-items .user-name:not([style*="color"]) {
+  color: #cdd9ed !important; text-shadow: 0 1px 3px #000c;
+}
+html[data-biliglow-active][data-biliglow-live][data-biliglow-dark] .chat-input-ctnr textarea::placeholder {
+  color: #c5cfdd !important;
+}
+
+/* The SC ticker is mounted only while paid messages exist. Its own --bg2
+   plate and expanded-card mask sit above the already-transparent chat shell.
+   Keep the colored amount/progress chips, avatars and message cards intact. */
+html[data-biliglow-active][data-biliglow-live] #pay-note-panel-vm .pay-note-panel,
+html[data-biliglow-active][data-biliglow-live] #pay-note-panel-vm .pay-note-panel .detail-info .mask {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Below-player feed and anchor information. Do not blanket-clear descendants:
+   banner artwork, live covers, medals and card menus use their own surfaces. */
+html[data-biliglow-active][data-biliglow-live] #sections-vm :is(
+  .flip-view, .room-feed, .room-feed-content, .feed-card,
+  .new-tabs, .bili-dyn-list, .bili-dyn-list__items, .bili-dyn-list__item,
+  .bili-dyn-item, .bili-dyn-card-live, .bili-dyn-card-live__body,
+  .room-detail-box, .room-info-cntr, .tabs-ctnr, .content-wrapper,
+  .announce-cntr, .room-introduction
+) {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+html[data-biliglow-active][data-biliglow-live] #sections-vm :is(
+  .new-tabs, .bili-dyn-item, .bili-dyn-card-live, .room-info-cntr
+) { border-color: var(--line_regular,rgba(120,130,145,.2)) !important; }
+html[data-biliglow-active][data-biliglow-live][data-biliglow-dark] #sections-vm :is(
+  .announce-cntr .a-content-text, .room-introduction
+) { color: var(--text1,#f3f6fb) !important; }
+html[data-biliglow-active][data-biliglow-live][data-biliglow-dark] #sections-vm :is(
+  .bili-dyn-item, .room-info-cntr
+) { text-shadow: 0 1px 3px rgba(0,0,0,.65); }

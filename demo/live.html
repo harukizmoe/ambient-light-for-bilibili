@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>合成直播测试 · Ambient light for Bilibili</title>
+  <link rel="stylesheet" href="../extension/page.css">
+  <link rel="stylesheet" href="live.css">
+</head>
+<body>
+  <div class="room-bg" aria-hidden="true"></div>
+  <div class="live-room-app">
+    <nav class="link-navbar-ctnr" aria-label="本地测试导航">
+      <div class="link-navbar">
+        <a class="brand" href="index.html"><img class="brand-icon" src="../extension/icons/128.png" alt="Ambient light 图标"><span>Ambient light<small>FOR BILIBILI</small></span></a>
+        <span class="nav-caption">光随直播，延伸到整个房间</span>
+        <span class="local-badge"><i></i>合成直播测试 · 本地运行</span>
+      </div>
+    </nav>
+    <main class="app-content">
+      <div class="app-body">
+        <div class="player-and-aside-area">
+          <section id="player-ctnr" aria-label="合成直播播放器">
+            <header id="head-info-vm">
+              <div class="room-avatar" aria-hidden="true">✦</div>
+              <div class="room-title"><h1>夜色花园 · 让画面里的颜色走出来</h1><p>Ambient Studio<span>合成内容，没有真实直播连接</span></p></div>
+              <span class="room-status" id="room-status"><i></i>本地播出</span>
+            </header>
+            <div id="fullscreen-container">
+              <div class="player-section">
+                <div id="live-player-ctnr" class="normal" data-screen="normal">
+                  <div id="live-player">
+                    <video id="synthetic-video" muted autoplay playsinline aria-label="本地合成直播画面"></video>
+                    <div class="on-screen-label"><span class="live-pill"><i></i>SYNTHETIC LIVE</span><span>画面由本机 Canvas 实时生成</span></div>
+                    <div class="offline-overlay" hidden><span>◌</span><strong>合成直播已停止</strong><p>点击“重连直播”重新建立播放器</p></div>
+                    <div class="player-toolbar"><span class="clock" id="scene-clock">00:00</span><span id="scene-name">01 / 粉紫花园</span><button id="exit-web" type="button" hidden>退出网页全屏 · Esc</button><span class="resolution" id="resolution-label">960 × 540 · 30 fps</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div id="gift-control-vm">
+              <div class="gift-note"><span class="gift-icon">✧</span><span><strong>这一刻，光也在场。</strong><small>保留画面与聊天前景，只让页面底色透光。</small></span></div>
+              <div class="gift-symbols" aria-label="装饰性礼物图标"><span>♡</span><span>✿</span><span>✦</span></div>
+            </div>
+          </section>
+          <aside id="aside-area-vm" aria-label="合成聊天面板">
+            <div id="rank-list-vm"><div id="rank-list-ctnr-box"><span>直播间聊天</span><span class="chat-count">本地样例</span></div></div>
+            <div class="chat-history-panel"><div id="chat-history-list"><div id="chat-items">
+              <p class="chat-welcome">欢迎来到光影实验室。以下消息均为固定的测试内容，不发送任何信息。</p>
+              <div class="chat-row"><span class="chat-avatar pink">L</span><p class="danmaku-item-right"><b class="user-name">夏夜回声</b><span>粉色和紫色一起漫到聊天栏了。</span></p></div>
+              <div class="chat-row"><span class="chat-avatar blue">M</span><p class="danmaku-item-right"><b class="user-name">慢慢的月亮</b><span>像把整个房间染上了夜色 ✦</span></p></div>
+              <div class="chat-row"><span class="chat-avatar peach">A</span><p class="danmaku-item-right"><b class="user-name">Ambient Studio</b><span>这是合成直播，用来验证实时采样和页面适配。</span></p></div>
+              <div class="chat-row"><span class="chat-avatar mint">Y</span><p class="danmaku-item-right"><b class="user-name">月光邮局</b><span>试试“深海蓝”，观察光色平滑过渡。</span></p></div>
+              <div class="chat-row"><span class="chat-avatar violet">C</span><p class="danmaku-item-right"><b class="user-name">玻璃海</b><span>文字和头像的透明度应始终保持 1。</span></p></div>
+              <div class="chat-row"><span class="chat-avatar pink">N</span><p class="danmaku-item-right"><b class="user-name">夜行植物</b><span>暂停后，最后一帧的颜色会留下来。</span></p></div>
+              <div class="chat-row"><span class="chat-avatar blue">R</span><p class="danmaku-item-right"><b class="user-name">晚风收集者</b><span>直播停播、重连和换流，也要能恢复。</span></p></div>
+            </div></div></div>
+            <div id="chat-control-panel-vm"><div class="chat-input-ctnr"><input aria-label="合成聊天输入框" placeholder="合成聊天，不会发送消息" readonly><button type="button" disabled aria-label="发送不可用">↗</button></div><span class="input-caption">LOCAL ONLY · NO MESSAGES SENT</span></div>
+          </aside>
+        </div>
+        <section class="lab-controls" aria-labelledby="lab-title">
+          <div class="lab-heading"><div><span class="eyebrow">LIVE ADAPTATION LAB</span><h2 id="lab-title">同一套光效，新的直播场景。</h2></div><p>先在右下角打开氛围光设置并同意本地处理。<br>建议选“绚彩”，将扩散范围调到 400% 对照整页效果。</p></div>
+          <div class="control-row scenes" aria-label="合成画面色彩">
+            <button type="button" data-scene="pink" aria-pressed="true"><i class="swatch pink"></i>粉紫花园</button>
+            <button type="button" data-scene="blue" aria-pressed="false"><i class="swatch blue"></i>深海蓝</button>
+            <button type="button" data-scene="dark" aria-pressed="false"><i class="swatch dark"></i>暗场</button>
+            <span class="controls-divider"></span><button type="button" id="pause-stream">暂停画面</button><button type="button" id="stop-stream">停播 / 移除播放器</button><button type="button" id="reconnect-stream">重连直播</button>
+          </div>
+          <div class="control-row">
+            <button type="button" id="portrait-stream" aria-pressed="false">切换竖屏流</button><button type="button" id="web-fullscreen" aria-pressed="false">网页全屏</button><button type="button" id="replace-video">替换 video</button><button type="button" id="hidden-preview" aria-pressed="true">隐藏超大预览：已开启</button>
+            <details class="sample-menu"><summary>菜单底色样本 ▾</summary><div class="sample-menu-panel" id="protected-menu"><strong>应保留的菜单底色</strong><p>菜单仍有不透明背景，防止选项与流光混在一起。</p><span>清晰度 · 测试项</span><span>播放线路 · 测试项</span></div></details>
+            <button type="button" class="run-tests" id="run-live-tests">运行直播自检</button>
+          </div>
+          <div class="test-report" id="live-test-report" data-state="idle" aria-live="polite"><div class="test-report-heading"><strong>浏览器自检</strong><output id="live-test-summary">等待运行 · 不会自动同意或保存测试参数</output></div><ol id="live-test-results"></ol></div>
+          <p class="test-footnote">本页验证本地合成流、DOM 结构与生产代码的协作；不能替代真实 Bilibili 直播的播放器、线路和浏览器宿主实测。</p>
+        </section>
+        <footer><span>Ambient light for Bilibili <b>· 0.5.3 基础 / 本地直播实验</b></span><a href="index.html">返回点播测试 ↗</a></footer>
+      </div>
+    </main>
+  </div>
+  <video id="hidden-preview-video" class="hidden-preview-video" muted autoplay playsinline aria-hidden="true"></video>
+  <script src="../extension/shared.js"></script>
+  <script src="../extension/player.js"></script>
+  <script src="../extension/preview.js"></script>
+  <script src="../extension/bars.js"></script>
+  <script src="../extension/bar-effects.js"></script>
+  <script src="live.js"></script>
+  <script src="../extension/content.js"></script>
+</body>
+</html>

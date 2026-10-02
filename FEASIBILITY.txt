@@ -1,0 +1,23 @@
+直播氛围光可行性 — 2026-10-02
+
+结论：可复用 0.5.3 引擎实现相近效果。参考图的粉紫色来自视频本身，不应固定写死；直播内容变暗，外侧光也应随之变暗。
+
+已确认事实
+1. 本地 0.5.3 基线提交 753b8b2，原 manifest 仅注入 www.bilibili.com，原路由仅视频/番剧。
+2. 原版已用 256px 宽 canvas、CSS blur/saturate 和平滑混合绘制视频外围光，扩散 400% 覆盖窗口。
+3. 真实 live.bilibili.com/25034104 页面中，#live-player 内有正常播放的 HTMLVideoElement，1920×1080，readyState 4，媒体源为 blob。页面另有独立视频元素，因此不能在直播页简单选所有 video 中最大者。
+4. 直播页房间皮肤 .room-bg、导航、头部、礼物栏、聊天底板、输入栏各自绘制背景；需要逐层限定处理，单纯增加域名不会得到参考图效果。
+
+实现方案
+新增独立播放器适配器，保留视频页原逻辑及用户参数。限定数字直播房间与主播放器；背景样式仅在有可用视频并已开启时生效。采样与模糊在本地；没有直播流下载/转发、屏幕捕获或新增网络服务。暂停/后台停绘，停播后还原，重连/元素替换后重绑。直播不做自动裁边，保留字幕和播放器完整画面。
+
+技术依据
+MDN requestVideoFrameCallback：在新视频帧提交时触发，适合视频处理和绘制到 canvas；存在旧浏览器兼容性限制，原引擎保留定时器回退。
+https://developer.mozilla.org/en-US/docs/Web/API/HTMLVideoElement/requestVideoFrameCallback
+MDN Canvas image sources：HTMLVideoElement 可作为 drawImage 图像源；跨域资源可能使 canvas 无法读取像素。氛围投影不依赖 getImageData，像素读取限制与画面绘制能力应分开判断。
+https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Using_images
+
+边界
+研究阶段先确认真实直播页面结构，后观察到已加载的 0.5.3.1；0.5.3.2 的 SC 与下方 UI 修复通过本地样式复现，用户确认当前版本可用。浏览器工具拒绝 chrome://extensions/，宿主加载由用户手动完成。Canvas/WebCodecs 特殊解码器、受保护画面、其他房间皮肤、第三方主题、实际直播原生全屏及 Edge 宿主仍未实测。大范围 blur 的 GPU 成本与屏幕、浏览器有关，不能从采样分辨率推断性能保证。
+
+详细检查结果见 QA.txt。

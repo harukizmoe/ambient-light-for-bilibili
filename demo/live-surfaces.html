@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN" data-biliglow-active data-biliglow-live data-biliglow-dark>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SC 与下方卡片 · 透明背景复现</title>
+<style>
+*{box-sizing:border-box}body{margin:0;color:#30343a;background:#eee;font:15px/1.7 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif}
+.fixture-light{position:fixed;inset:0;z-index:-1;background:radial-gradient(ellipse at 4% 5%,#abd9ae,transparent 60%),radial-gradient(ellipse at 90% 10%,#ebaa83,transparent 70%),radial-gradient(ellipse at 30% 100%,#675787,transparent 70%),#696581}
+.fixture{max-width:1260px;margin:28px auto;padding:0 28px}.tools{display:flex;align-items:center;gap:10px;margin-bottom:24px}.tools strong{margin-right:auto;font-size:20px;color:#fff}.tools button{font:inherit;font-size:12px;border:1px solid #ffffff35;padding:7px 13px;border-radius:7px;background:#202633;color:#fff;cursor:pointer}.tools output{color:#fff;font-size:12px}
+.columns{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px}h2,h3,p{margin:0 0 12px}h2{font-size:18px}h3{font-size:17px}.caption{font-size:12px;color:#fff9;margin:18px 0 8px}.panel{padding:18px;border-radius:9px}
+.pay-note-panel{position:relative;width:100%;height:47px;background-color:var(--bg2,#eee);z-index:299;padding:0 10px;box-sizing:border-box}.card-list{display:flex;align-items:center;height:100%;gap:10px}.card-item{height:34px;width:118px;border-radius:22px;background:#93abd3;overflow:hidden;position:relative;color:#fff}.totle{position:absolute;inset:0 20% 0 0;background:#2a60b2}.price{position:relative;display:flex;align-items:center;gap:5px;line-height:34px}.face-img{width:30px;height:30px;background:#d9ecff;border-radius:50%;display:grid;place-items:center;color:#3772b7;font-size:20px}.pay-note-panel .detail-info .mask{position:absolute;inset:0;background:linear-gradient(to bottom,var(--bg2,#eee) calc(100% - 4px),transparent 100%)}.detail-info{display:none;position:absolute;top:51px;left:0;right:0;height:96px}.detail-info .message-card{position:relative;margin:0 10px;padding:12px 16px;background:#2a60b2;color:white;border-radius:9px}.expanded .detail-info{display:block}.expanded{margin-bottom:102px}.chat-sample{padding:12px;font-size:13px;color:var(--text1,#222)}.chat-sample b{color:#9edff0}
+#sections-vm .new-tabs{list-style:none;margin:0;padding:12px 20px;background:var(--bg1,#fff);border:1px solid #fff;border-radius:8px 8px 0 0;color:#fb7299}.bili-dyn-item{padding:22px;background:var(--bg1,#fff);border-bottom:1px solid #fff2;margin-bottom:10px;border-radius:0 0 8px 8px}.bili-dyn-item__header{display:flex;align-items:center;gap:12px;margin-bottom:14px}.avatar{width:42px;height:42px;border-radius:50%}.author{color:#ff86aa;font-weight:600}.time{font-size:12px;color:var(--text3,#888)}.post-text{color:var(--text1,#222)}.actions{display:flex;justify-content:space-between;margin-top:22px;color:var(--text3,#888);font-size:13px}.bili-dyn-card-live{display:flex;border:1px solid #fff4;border-radius:8px;overflow:hidden}.bili-dyn-card-live__cover{width:190px;object-fit:cover}.bili-dyn-card-live__body{flex:1;padding:18px;background:var(--bg1,#fff);color:var(--text1,#222)}.bili-dyn-card-live__body small{display:block;margin-top:24px;color:var(--text3,#888)}
+.room-info-cntr{min-height:250px;background:var(--bg1,#fff);border:1px solid #fff;border-radius:8px;padding:18px}.tabs-ctnr{display:flex;justify-content:space-between;font-size:13px;margin-bottom:20px;color:var(--text1,#222)}.tabs-ctnr span:first-child{color:#fb7299;border-bottom:2px solid #fb7299}.announce-cntr{background:var(--bg1,#fff)}.a-content-text{color:#2f3238}.room-introduction{margin-top:24px}.menu-sample{margin-top:22px;padding:16px;border-radius:8px;background:var(--bg1_float,#fff);color:var(--text1,#222);font-size:12px}.flip-view{border-radius:8px;overflow:hidden;margin-bottom:16px;background:var(--bg1,#fff)}.flip-view-image{height:85px;background:linear-gradient(100deg,#1d1979,#d53190);padding:15px 22px;color:#fff;font-size:22px;font-weight:600}.flip-view-image small{display:block;font-size:10px;letter-spacing:2px;opacity:.8}.footnote{color:#fff9;font-size:12px;margin-top:22px}
+</style>
+<link rel="stylesheet" href="../extension/page.css">
+<div class="fixture-light" aria-hidden="true"></div>
+<main class="fixture">
+<div class="tools"><strong>SC 与下方内容透光</strong><output id="state">已开启 · 深色背景</output><button id="toggle">关闭氛围光</button><button id="theme">切换深浅色</button><button id="remount">重新出现 SC</button><button id="expand">展开 SC</button></div>
+<div class="columns">
+<div><div class="caption">直播下方 · 使用现场观察到的组件结构</div>
+<section id="sections-vm" class="columns">
+<div><div class="flip-view"><div class="flip-view-image">直播活动横幅<small>图片与内容保持原样</small></div></div>
+<div class="room-feed"><ul class="new-tabs"><li>TA的动态</li></ul><div class="room-feed-content"><div class="feed-card"><div class="bili-dyn-list__item"><article class="bili-dyn-item">
+<div class="bili-dyn-item__header"><img class="avatar" src="../extension/icons/128.png" alt="示例头像"><div><div class="author">示例主播</div><div class="time">置顶动态 · 本地样例</div></div></div>
+<div class="post-text"><h3>让动态内容，也融入直播氛围</h3><p>清除外壳底色，文字、头像和图片保持完整显示。</p></div><div class="actions"><span>转发</span><span>评论</span><span>点赞</span></div></article></div>
+<article class="bili-dyn-item"><div class="bili-dyn-card-live"><img class="bili-dyn-card-live__cover" src="thumb-mountain.svg" alt="示例直播封面"><div class="bili-dyn-card-live__body">示例直播 · 山间的光<small>虚拟主播 · 本地复现</small></div></div></article>
+</div></div></div></div>
+<aside class="room-detail-box"><div class="room-info-cntr"><div class="tabs-ctnr"><span>主播公告</span><span>主播荣誉</span><span>主播简介</span></div><div class="content-wrapper"><div class="announce-cntr"><div class="a-content-text">公告正文使用清晰的前景色，底板完全透明。</div></div><div class="room-introduction">简介区域同样透光。</div></div></div></aside>
+</section></div>
+<aside><div class="caption">SC 轮播条 · 黑色外壳应透光</div><div id="pay-note-panel-vm"><div class="pay-note-panel"><div class="card-list"><div class="card-item"><div class="totle"></div><div class="price"><span class="face-img">✦</span><span>⚡300</span></div></div></div><div class="detail-info"><div class="mask"></div><div class="message-card">SC 内容及金额色块保留。</div></div></div></div><div class="chat-sample"><b>示例观众</b>：黑色底板已消除。<br>头像与金额进度条仍清晰可见。</div><div class="menu-sample">菜单样本<br>清晰度与操作菜单仍保留底色。</div></aside>
+</div><p class="footnote">静态布局复现，仅检验生产 page.css 的背景和前景处理；不发送 SC 或任何聊天消息。</p>
+</main>
+<script>
+const html=document.documentElement,sc=document.querySelector('#pay-note-panel-vm'),sample=sc.innerHTML;
+function label(){const on=html.hasAttribute('data-biliglow-active');document.querySelector('#state').textContent=(on?'已开启':'已关闭')+' · '+(html.hasAttribute('data-biliglow-dark')?'深色背景':'浅色背景');document.querySelector('#toggle').textContent=on?'关闭氛围光':'开启氛围光';}
+document.querySelector('#toggle').onclick=()=>{const on=!html.hasAttribute('data-biliglow-active');html.toggleAttribute('data-biliglow-active',on);html.toggleAttribute('data-biliglow-dark',on);label();};
+document.querySelector('#theme').onclick=()=>{html.toggleAttribute('data-biliglow-dark');label();};
+document.querySelector('#remount').onclick=()=>{sc.replaceChildren();setTimeout(()=>sc.innerHTML=sample,100);};
+document.querySelector('#expand').onclick=()=>document.querySelector('.pay-note-panel')?.classList.toggle('expanded');
+</script></html>
