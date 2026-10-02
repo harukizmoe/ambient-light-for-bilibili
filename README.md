@@ -1,6 +1,6 @@
 # Ambient light for Bilibili
 
-为 Bilibili 桌面播放页添加随视频变化的氛围光。版本 **0.5.2**，Manifest V3，原生 JavaScript，无构建步骤或运行时依赖。
+为 Bilibili 桌面播放页添加随视频变化的氛围光。版本 **0.5.3**，Manifest V3，原生 JavaScript，无构建步骤或运行时依赖。
 
 ![扩展图标](extension/icons/128.png)
 
@@ -14,7 +14,7 @@
 
 ## 安装与使用
 
-Chrome Web Store 与 Microsoft Edge Add-ons 的 0.5.2 均已于 2026-10-01 提交审核，状态分别为 Pending review 与 In review。Chrome 已设置审核通过后自动发布。两家商店暂未提供安装链接；[GitHub 发布候选包](https://github.com/tosya301/ambient-light-for-bilibili/releases/tag/v0.5.2)可用于本地加载。
+Chrome Web Store 与 Microsoft Edge Add-ons 的 0.5.2 均已于 2026-10-01 提交审核，状态分别为 Pending review 与 In review。Chrome 已设置审核通过后自动发布。两家商店暂未提供安装链接；[GitHub 0.5.3 修复包](https://github.com/tosya301/ambient-light-for-bilibili/releases/tag/v0.5.3)可用于本地加载，修复评论区分割线与上方颜色不一致的问题。本次 GitHub 更新不改变两家商店已送审的 0.5.2。
 
 本地安装：下载本仓库，在浏览器扩展管理页打开开发者模式，选择“加载已解压的扩展”，加载 **extension** 文件夹，然后刷新 Bilibili 播放页面。
 
@@ -26,7 +26,7 @@ Chrome Web Store 与 Microsoft Edge Add-ons 的 0.5.2 均已于 2026-10-01 提�
 
 去边仅在 Bilibili 宽屏模式启用，不在网页全屏或原生全屏启用。含字幕、复杂边框或无法读取像素时可能保留原画；不修改视频地址，不绕过受保护媒体或访问限制。
 
-当前实测：34 项 Node 测试通过；0.5.1 的本地生产代码演示中，同意/撤回交互及 28 项页面自检通过。新版浏览器宿主安装与升级待验证；现有 Chrome 0.5.0 在真实 Bilibili 视频页的动态光效、暂停、开关、设置保存、宽屏、网页全屏及推荐视频切换已观察通过。Edge 宿主、原生全屏、番剧、分 P、画中画和真实稳定边框样本尚待专项验证。采样帧率是上限，不构成设备性能保证。
+当前实测：34 项 Node 测试通过；0.5.3 评论分割线在复现真实 Shadow DOM 的本地浏览器页面中，深色/浅色、组件重建及关闭还原检查通过；0.5.1 的本地生产代码演示中，同意/撤回交互及 28 项页面自检通过。新版浏览器宿主安装与升级待验证；现有 Chrome 0.5.0 在真实 Bilibili 视频页的动态光效、暂停、开关、设置保存、宽屏、网页全屏及推荐视频切换已观察通过。Edge 宿主、原生全屏、番剧、分 P、画中画和真实稳定边框样本尚待专项验证。采样帧率是上限，不构成设备性能保证。
 
 ## 隐私与支持
 

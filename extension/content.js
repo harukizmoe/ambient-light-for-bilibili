@@ -15,6 +15,10 @@
   const commentStyles=new Map();
   const commentHosts='bili-comments,bili-comments-header-renderer,bili-comment-thread-renderer,bili-comment-renderer,bili-comment-replies-renderer,bili-comment-reply-renderer,bili-comment-box';
   const commentCSS={
+    'bili-comment-thread-renderer':`
+      /* Match the video tag/toolbar divider without changing other comment surfaces. */
+      :host-context(html[data-biliglow-active]) #div { border-bottom-color:var(--line_regular)!important; }
+    `,
     'bili-comments-header-renderer':`
       :host-context(html[data-biliglow-active]) :is(.bili-comments-bottom-fixed-wrapper,
       .bili-comments-bottom-fixed-wrapper > div,
@@ -66,7 +70,7 @@
     root.setAttribute('aria-hidden','true');
     // A negative child of the isolated body paints AFTER its background but BEFORE page content.
     root.style.cssText='position:fixed;inset:0;pointer-events:none!important;z-index:-1;overflow:hidden;contain:strict;display:none;';
-    root.dataset.version='0.5.2';
+    root.dataset.version='0.5.3';
     const shadow=root.attachShadow({mode:'open'});
     canvas=document.createElement('canvas');canvas.width=256;canvas.height=144;
     canvas.style.cssText='position:absolute;pointer-events:none;transform-origin:center;';shadow.append(canvas);
