@@ -1,17 +1,23 @@
 {
-  "base_commit": "391ef5f",
-  "version": "0.5.3.3",
-  "archive": "Ambient-light-for-Bilibili-0.5.3.3.zip",
-  "sha256": "8e1ca09499637c0fdfeacc79307a6241822f0c09b7cd576b975fdc858d43aa40",
-  "bytes": 238606,
+  "base_commit": "62102f5",
+  "previous_local_version": "0.5.3.4",
+  "version": "0.5.3.5",
+  "archive": "Ambient-light-for-Bilibili-0.5.3.5.zip",
+  "sha256": "135a177c154c86e44275911cfd5f619c2e65e2cb0782abf1cefdaa07bb4a44f0",
+  "bytes": 239519,
   "file_count": 19,
   "archive_matches_extension_files": true,
-  "node_tests_passed": 43,
-  "local_chrome_watchlater_checks_passed": 19,
-  "local_chrome_vod_checks_passed": 28,
-  "browser_evidence": "qa/watchlater-browser-results.json",
-  "real_watchlater_updated_extension": "not tested; actual DOM inspected; extension reload required",
-  "publication": "GitHub prerelease v0.5.3.3; no store submission",
-  "release_tag": "v0.5.3.3",
-  "identical_to_approved_local_archive": true
+  "node_tests_passed": 52,
+  "local_chrome_blanc_live_checks_passed": 19,
+  "browser_evidence": "qa/blanc-browser-results.json",
+  "actual_blanc_url": "https://live.bilibili.com/blanc/25034104",
+  "real_blanc_updated_extension": "not tested; actual DOM inspected; extension reload required",
+  "publication": "GitHub stable release v0.5.3.5 (Latest); no store submission",
+  "is_prerelease": false,
+  "release_tag": "v0.5.3.5",
+  "approved_preview_sha256": "8a3a1a0de8ced189b4db8f43bc3645da617e2599eee374209465fad6e3062132",
+  "changed_extension_files_from_approved_preview": [
+    "manifest.json"
+  ],
+  "only_manifest_version_name_changed": true
 }

@@ -13,6 +13,22 @@ test('only desktop room URLs and existing playback routes are enabled',()=>{
   assert.equal(P.pageKind(new URL('https://www.bilibili.com/bangumi/play/ep1')),'video');
   assert.equal(P.pageKind(new URL('https://example.com/video/a')),null);
 });
+test('blanc room routes use the live adapter with trailing slash, query and hash',()=>{
+  for(const path of ['/blanc/1','/blanc/25034104','/blanc/25034104/']){
+    for(const suffix of ['', '?broadcast_type=0', '?from=search#chat']){
+      const url=new URL(`https://live.bilibili.com${path}${suffix}`);
+      assert.equal(P.pageKind(url),'live',url.href);
+    }
+  }
+});
+test('blanc routing still excludes invalid IDs, nested pages and other hosts',()=>{
+  for(const path of ['/blanc','/blanc/','/blanc/0','/blanc/01','/blanc/-1','/blanc/abc','/blanc/25034104/extra','/blanc/25034104//','/Blanc/25034104','/blanc%2F25034104']){
+    assert.equal(P.pageKind(new URL(`https://live.bilibili.com${path}?room_id=25034104`)),null,path);
+  }
+  for(const host of ['www.bilibili.com','m.bilibili.com','live.bilibili.com.example.com']){
+    assert.equal(P.pageKind(new URL(`https://${host}/blanc/25034104`)),null,host);
+  }
+});
 test('watch-later playback is a video route with either trailing-slash form and playback parameters',()=>{
   for(const path of ['/list/watchlater','/list/watchlater/']){
     for(const suffix of ['', '?bvid=BV1example', '?oid=123456789&t=42', '?bvid=BV1example&oid=123456789&t=42#reply123', '#t=90']){

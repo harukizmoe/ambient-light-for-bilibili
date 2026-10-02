@@ -1,12 +1,24 @@
 # Ambient light for Bilibili
 
-为 Bilibili 桌面播放页添加随视频变化的氛围光。基础版本 **0.5.3**，Manifest V3，原生 JavaScript，无构建步骤或运行时依赖。
+为 Bilibili 桌面播放页添加随视频变化的氛围光。当前正式版 **0.5.3.5**，Manifest V3，原生 JavaScript，无构建步骤或运行时依赖。
 
 ![扩展图标](extension/icons/128.png)
 
-## 0.5.3.3 稍后再看修复（GitHub 预发布）
+## 0.5.3.5 正式版
 
-当前扩展版本为 `0.5.3.3`，基于 GitHub `v0.5.3.2`（`391ef5f`）。新增 `/list/watchlater/` 详情播放页支持，复用普通点播的光效设置、深色背景、透明组件、宽屏／全屏及可选自动去边。稍后再看队列、分 P 与选中项透光，封面和当前项高亮保留；连续换片、播放器替换、离开和返回时自动处理。
+[GitHub 最新正式版 0.5.3.5](https://github.com/tosya301/ambient-light-for-bilibili/releases/tag/v0.5.3.5) 提供源码与安装包。支持 `https://live.bilibili.com/blanc/房间号` 原版直播间链接，与普通数字房间链接使用同一套光效、透明界面和可拖动圆形入口。末尾斜杠、查询参数和锚点不影响识别；不自动跳转页面，不改写播放器，不增加权限。
+
+重新加载本目录 `extension` 后刷新 `/blanc/` 直播页即可沿用已有设置。真实页面已确认主要播放器与界面结构一致；更新后的扩展注入仍需宿主验收。本次正式版包含下述圆形可拖动入口与此前所有直播、稍后再看修复。可在 [原版路径本地验证页](http://127.0.0.1:8768/demo/live.html?blanc=1) 运行合成直播检查，详情见 [QA.txt](QA.txt)。
+
+## 0.5.3.4 可拖动圆形入口（随 0.5.3.5 发布）
+
+上一版本 `0.5.3.4`，基于已发布的 `v0.5.3.3`。右下角入口改为 48px 圆形小电视，可用鼠标或主触控指针拖动避开页面按钮；点击仍打开设置。拖动不会触发点击，窗口缩小后入口仍保留在可见范围内，面板随位置避让。
+
+每次开启或关闭氛围光时回到右下角默认位置；关闭设置面板、调整预设及其他参数时保留当前位置。刷新页面后也回到默认位置，拖动位置不会写入存储。加载本目录 `extension` 后重新加载扩展并刷新播放页即可使用。该功能已随 0.5.3.5 正式版发布，验证范围见 [QA.txt](QA.txt)。
+
+## 0.5.3.3 稍后再看修复（历史预发布）
+
+已发布版本为 `0.5.3.3`，基于 GitHub `v0.5.3.2`（`391ef5f`）。新增 `/list/watchlater/` 详情播放页支持，复用普通点播的光效设置、深色背景、透明组件、宽屏／全屏及可选自动去边。稍后再看队列、分 P 与选中项透光，封面和当前项高亮保留；连续换片、播放器替换、离开和返回时自动处理。
 
 重新加载本目录的 `extension` 后刷新详情播放页即可沿用已有设置。首页按钮打开的迷你浮窗与最终详情播放页是不同页面，本次适配后者。权限和注入域名不变，安装包见 [GitHub Release](https://github.com/tosya301/ambient-light-for-bilibili/releases/tag/v0.5.3.3)。
 
@@ -45,15 +57,15 @@
 
 ## 安装与使用
 
-下载 [GitHub 0.5.3.3 稍后再看修复版](https://github.com/tosya301/ambient-light-for-bilibili/releases/tag/v0.5.3.3)的 `Ambient-light-for-Bilibili-0.5.3.3.zip`，解压后可本地加载。包含此前的点播、数字直播间适配及透明界面修复。Chrome Web Store 与 Microsoft Edge Add-ons 的 0.5.2 已于 2026-10-01 提交审核；本次只更新 GitHub，未重新提交商店。
+下载 [GitHub 0.5.3.5 正式版](https://github.com/tosya301/ambient-light-for-bilibili/releases/tag/v0.5.3.5)的 `Ambient-light-for-Bilibili-0.5.3.5.zip`，解压后可本地加载。包含点播、稍后再看、普通与 `/blanc/` 直播间、透明界面和圆形拖动入口。Chrome Web Store 与 Microsoft Edge Add-ons 的 0.5.2 已于 2026-10-01 提交审核；本次只更新 GitHub，未重新提交商店。
 
 本地安装：下载本仓库，在浏览器扩展管理页打开开发者模式，选择“加载已解压的扩展”，加载 **extension** 文件夹，然后刷新 Bilibili 播放页面。
 
-点击页面右下角的“氛围光”或工具栏扩展图标打开设置，阅读本地处理说明并明确同意后才会开启。可在“更多”撤回同意并停止处理。默认快捷键为 **Alt+Shift+A**；可在浏览器的扩展快捷键设置中调整。更新时替换同一目录内的文件，再重新加载扩展并刷新页面，以保留扩展 ID 和设置。
+点击页面右下角的小电视按钮或工具栏扩展图标打开设置，阅读本地处理说明并明确同意后才会开启。可在“更多”撤回同意并停止处理。默认快捷键为 **Alt+Shift+A**；可在浏览器的扩展快捷键设置中调整。更新时替换同一目录内的文件，再重新加载扩展并刷新页面，以保留扩展 ID 和设置。
 
 ## 支持范围与限制
 
-面向桌面端 `www.bilibili.com/video/`、`www.bilibili.com/bangumi/play/`；0.5.3.3 增加 `www.bilibili.com/list/watchlater/` 详情播放页。直播为预览支持；不支持移动端或第三方嵌入播放器。Bilibili 页面更新或其他主题扩展可能影响显示。
+面向桌面端 `www.bilibili.com/video/`、`www.bilibili.com/bangumi/play/`；0.5.3.3 增加 `www.bilibili.com/list/watchlater/` 详情播放页。直播支持 `live.bilibili.com/数字房间号` 与 `live.bilibili.com/blanc/数字房间号`；不支持移动端或第三方嵌入播放器。Bilibili 页面更新或其他主题扩展可能影响显示。
 
 去边仅在 Bilibili 宽屏模式启用，不在网页全屏或原生全屏启用。含字幕、复杂边框或无法读取像素时可能保留原画；不修改视频地址，不绕过受保护媒体或访问限制。
 

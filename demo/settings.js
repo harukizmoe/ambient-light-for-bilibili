@@ -8,5 +8,5 @@ for(const id of ['light','picture','more']){
 }
 BiliGlow.storage.set(BiliGlow.presets.vivid);
 const launcher=document.querySelector('#launcher').attachShadow({mode:'open'});
-launcher.innerHTML=`<style>${BiliGlow.css}</style><button class="launcher" aria-label="打开视频演示">${BiliGlow.mark}氛围光</button>`;
+launcher.innerHTML=`<style>${BiliGlow.css}</style><button class="launcher" aria-label="打开视频演示">${BiliGlow.mark}</button>`;
 launcher.querySelector('button').addEventListener('click',()=>location.href='./');

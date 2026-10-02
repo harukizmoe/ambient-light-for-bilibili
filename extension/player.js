@@ -3,7 +3,8 @@
   'use strict';
   function pageKind({hostname,pathname}) {
     if(hostname==='localhost'||hostname==='127.0.0.1')return pathname==='/demo/live.html'?'live':'video';
-    if(hostname==='live.bilibili.com')return /^\/[1-9]\d*\/?$/.test(pathname)?'live':null;
+    // /blanc/<room> is the plain room layout and uses the same live player.
+    if(hostname==='live.bilibili.com')return /^\/(?:blanc\/)?[1-9]\d*\/?$/.test(pathname)?'live':null;
     // The watch-later detail page uses the same player, modes and comments as
     // ordinary VOD. Keep the homepage/PiP launcher and other list routes out.
     return hostname==='www.bilibili.com'&&(/^\/(video\/|bangumi\/play\/)/.test(pathname)||/^\/list\/watchlater\/?$/.test(pathname))?'video':null;

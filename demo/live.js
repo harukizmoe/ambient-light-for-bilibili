@@ -3,6 +3,15 @@
 (() => {
   'use strict';
   const $=selector=>document.querySelector(selector);
+  // Fixture-only host/path mapping exercises the production blanc classifier.
+  // Video selection, rendering and styles remain the real extension code.
+  if(new URLSearchParams(location.search).get('blanc')==='1'){
+    const adapter=BiliGlowPlayer;
+    globalThis.BiliGlowPlayer=Object.freeze({...adapter,pageKind:route=>adapter.pageKind({
+      hostname:'live.bilibili.com',pathname:route.pathname==='/demo/live.html'?'/blanc/25034104/':route.pathname
+    })});
+    $('#lab-title').textContent='原版直播间 /blanc/ · 同一套直播光效';
+  }
   const stage=$('#fullscreen-container'),host=$('#live-player'),player=$('#live-player-ctnr');
   const source=document.createElement('canvas'),paint=source.getContext('2d');
   source.width=960;source.height=540;

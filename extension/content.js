@@ -6,6 +6,7 @@
   let lastFrame=0,nextPaint=0,needsDraw=false,painted=false,visible=false,blocked=false,supported=false,layoutDirty=true,frames=0;
   let status={text:'等待播放器',error:false},ui=null,panel=null,panelHost=null,launcher=null,root=null,canvas=null,ctx=null;
   let stage=null,mode='normal',barEffect=null,barStatus='宽屏去边已关闭';
+  let launcherPosition=null,drag=null,suppressLauncherClick=false;
   const setBarStatus=text=>{barStatus=text;panel?.setBarStatus(text);};
   let kind=P.pageKind(location);
   const isSupported=()=>{kind=P.pageKind(location);return Boolean(kind);};
@@ -70,7 +71,7 @@
     root.setAttribute('aria-hidden','true');
     // A negative child of the isolated body paints AFTER its background but BEFORE page content.
     root.style.cssText='position:fixed;inset:0;pointer-events:none!important;z-index:-1;overflow:hidden;contain:strict;display:none;';
-    root.dataset.version='0.5.3.3';
+    root.dataset.version='0.5.3.5';
     const shadow=root.attachShadow({mode:'open'});
     canvas=document.createElement('canvas');canvas.width=256;canvas.height=144;
     canvas.style.cssText='position:absolute;pointer-events:none;transform-origin:center;';shadow.append(canvas);
@@ -78,15 +79,76 @@
     ui=document.createElement('div');ui.dataset.biliglowUi='';
     ui.style.cssText='position:fixed;right:24px;bottom:24px;z-index:2147483001;color-scheme:dark;';
     const uiShadow=ui.attachShadow({mode:'open'});
-    uiShadow.innerHTML=`<style>${B.css}.holder{position:absolute;right:0;bottom:56px;max-height:calc(100vh - 105px);overflow:visible;border-radius:16px}.holder[hidden]{display:none}</style><div class="holder" hidden></div><button class="launcher" aria-label="打开氛围光设置" aria-expanded="false">${B.mark} 氛围光</button>`;
+    uiShadow.innerHTML=`<style>${B.css}.holder{position:fixed;overflow:visible;border-radius:16px}.holder[hidden]{display:none}</style><div class="holder" hidden></div><button class="launcher" type="button" aria-label="打开氛围光设置" title="氛围光设置 · 可拖动" aria-expanded="false">${B.mark}</button>`;
     panelHost=uiShadow.querySelector('.holder');launcher=uiShadow.querySelector('.launcher');
-    launcher.addEventListener('click',()=>togglePanel(panelHost.hidden));
+    launcher.addEventListener('pointerdown',event=>{
+      if(event.button!==0||!event.isPrimary||drag)return;
+      const rect=launcher.getBoundingClientRect();
+      suppressLauncherClick=false;
+      drag={id:event.pointerId,x:event.clientX,y:event.clientY,left:rect.left,top:rect.top,moved:false};
+      launcher.setPointerCapture(event.pointerId);
+    });
+    launcher.addEventListener('pointermove',event=>{
+      if(!drag||event.pointerId!==drag.id)return;
+      const dx=event.clientX-drag.x,dy=event.clientY-drag.y;
+      if(!drag.moved&&Math.hypot(dx,dy)<5)return;
+      drag.moved=true;suppressLauncherClick=true;
+      launcher.setAttribute('data-dragging','');event.preventDefault();
+      launcherPosition={left:drag.left+dx,top:drag.top+dy};positionLauncher();
+    });
+    const endDrag=event=>{if(drag?.id===event.pointerId)cancelLauncherDrag();};
+    launcher.addEventListener('pointerup',endDrag);
+    launcher.addEventListener('pointercancel',endDrag);
+    launcher.addEventListener('lostpointercapture',endDrag);
+    launcher.addEventListener('dragstart',event=>event.preventDefault());
+    launcher.addEventListener('click',event=>{
+      // Pointer-generated clicks follow a drag. Keyboard activation has detail=0.
+      if(suppressLauncherClick&&event.detail!==0){event.preventDefault();event.stopPropagation();suppressLauncherClick=false;return;}
+      suppressLauncherClick=false;togglePanel(panelHost.hidden);
+    });
     ui.addEventListener('keydown',event=>{if(event.key==='Escape'&&!panelHost.hidden){togglePanel(false);event.stopPropagation();}});
     document.documentElement.append(ui);
+    new ResizeObserver(positionPanel).observe(panelHost);
+  }
+  function cancelLauncherDrag(){
+    if(!drag)return;
+    const id=drag.id;drag=null;launcher.removeAttribute('data-dragging');
+    if(launcher.hasPointerCapture(id))launcher.releasePointerCapture(id);
+  }
+  const clampPosition=(value,size,limit)=>Math.max(8,Math.min(value,Math.max(8,limit-size-8)));
+  const viewportWidth=()=>document.documentElement.clientWidth||innerWidth;
+  function positionLauncher(){
+    if(!ui)return;
+    if(launcherPosition){
+      const rect=launcher.getBoundingClientRect();
+      launcherPosition={left:clampPosition(launcherPosition.left,rect.width,viewportWidth()),top:clampPosition(launcherPosition.top,rect.height,innerHeight)};
+      ui.style.left=`${launcherPosition.left}px`;ui.style.top=`${launcherPosition.top}px`;
+      ui.style.right='auto';ui.style.bottom='auto';
+    }else{
+      ui.style.left='auto';ui.style.top='auto';ui.style.right='24px';ui.style.bottom='24px';
+    }
+    positionPanel();
+  }
+  function resetLauncher(){cancelLauncherDrag();launcherPosition=null;positionLauncher();}
+  function positionPanel(){
+    if(!panelHost||panelHost.hidden)return;
+    const r=launcher.getBoundingClientRect(),p=panelHost.getBoundingClientRect();
+    let left=r.right-p.width,top=r.top-p.height-12;
+    if(top<8){
+      if(r.bottom+12+p.height<=innerHeight-8)top=r.bottom+12;
+      else{
+        top=r.bottom-p.height;
+        if(r.right+12+p.width<=viewportWidth()-8)left=r.right+12;
+        else if(r.left-12-p.width>=8)left=r.left-12-p.width;
+      }
+    }
+    panelHost.style.left=`${clampPosition(left,p.width,viewportWidth())}px`;
+    panelHost.style.top=`${clampPosition(top,p.height,innerHeight)}px`;
   }
   function togglePanel(open){
     if(open&&!panel){panel=B.mountPanel(panelHost.attachShadow({mode:'open'}),{closable:true,onClose:()=>togglePanel(false)});panel.setStatus(status.text,status.error);panel.setBarStatus(barStatus);}
     panelHost.hidden=!open;launcher.setAttribute('aria-expanded',String(open));
+    positionPanel();
     if(open)panel.focus();else launcher.focus();
   }
   function cancelFrames(){
@@ -166,7 +228,7 @@
     const parent=stage||document.body;
     if(root.parentNode!==parent)parent.append(root);
     const uiParent=ownFullscreen?fs:document.documentElement;
-    if(ui.parentNode!==uiParent)uiParent.append(ui);
+    if(ui.parentNode!==uiParent){cancelLauncherDrag();uiParent.append(ui);positionLauncher();}
     ui.style.display=supported&&(!fs||Boolean(ownFullscreen))?'block':'none';
     if(!active||document.hidden){
       visible=false;root.style.display='none';cancelFrames();
@@ -240,13 +302,17 @@
     syncCommentSurfaces();
   }
   let settingsRevision=0;
-  function apply(next){settingsRevision++;settings=next;reconcile();invalidate();}
+  function apply(next){
+    const toggled=next.enabled!==settings.enabled||B.isActive(next)!==B.isActive(settings);
+    settingsRevision++;settings=next;reconcile();if(toggled)resetLauncher();invalidate();
+  }
   const initialRevision=settingsRevision;
   B.storage.get().then(next=>{if(settingsRevision===initialRevision)apply(next);}).catch(()=>setStatus('设置读取失败，当前使用默认值',true));
   B.storage.subscribe(apply,{onRevoke:()=>apply({...settings,privacyAccepted:false})});
-  window.addEventListener('resize',invalidate,{passive:true});
+  window.addEventListener('resize',()=>{cancelLauncherDrag();positionLauncher();invalidate();},{passive:true});
   window.addEventListener('scroll',invalidate,{passive:true,capture:true});
-  document.addEventListener('fullscreenchange',invalidate);
+  document.addEventListener('fullscreenchange',()=>{cancelLauncherDrag();positionLauncher();invalidate();});
+  window.addEventListener('blur',cancelLauncherDrag);
   document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelFrames();if(root)root.style.display='none';}else invalidate();});
   window.addEventListener('popstate',reconcile);
   // Catches pushState routes and player replacement without observing every danmaku mutation.

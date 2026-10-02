@@ -98,10 +98,21 @@ test('local and cross-tab revocation notify immediately and discard stale asynch
 function contentHarness(initial,delayed=false,live=false,options={}){
   const counts={videoQueries:0,videoReads:0,draws:0,barCreates:0,barSamples:0,barDisposals:0,cancelled:0};
   const barConfigurations=[];
+  const windowEvents=new Map(),documentEvents=new Map(),panelCalls={mounted:0,focused:0};
   const rafs=new Map(),frames=new Map(),intervals=[];let nextId=0,onSettings,resolveInitial;
+  function dispatch(target,type,values={}){
+    const event={button:0,isPrimary:true,pointerId:1,clientX:0,clientY:0,detail:1,defaultPrevented:false,propagationStopped:false,
+      preventDefault(){this.defaultPrevented=true;},stopPropagation(){this.propagationStopped=true;},...values};
+    (target instanceof Map?target:target.events).get(type)?.(event);return event;
+  }
+  function styleObject(){
+    const style={setProperty(name,value){this[name]=value;},removeProperty(name){delete this[name];}};
+    Object.defineProperty(style,'cssText',{set(value){for(const item of value.split(';')){const [name,...parts]=item.split(':');if(parts.length)this[name.trim()]=parts.join(':').trim();}}});
+    return style;
+  }
   class Element{
-    constructor(tag){this.tagName=tag.toUpperCase();this.dataset={};this.style={setProperty(){},removeProperty(){}};this.attrs=new Map();this.children=[];this.events=new Map();this.isConnected=true;}
-    append(child){child.parentNode=this;this.children.push(child);}
+    constructor(tag){this.tagName=tag.toUpperCase();this.dataset={};this.style=styleObject();this.attrs=new Map();this.children=[];this.events=new Map();this.isConnected=true;this.captured=new Set();}
+    append(child){if(child.parentNode)child.parentNode.children=child.parentNode.children.filter(item=>item!==child);child.parentNode=this;this.children.push(child);}
     setAttribute(key,value){this.attrs.set(key,value);}
     removeAttribute(key){this.attrs.delete(key);}
     hasAttribute(key){return this.attrs.has(key);}
@@ -110,10 +121,18 @@ function contentHarness(initial,delayed=false,live=false,options={}){
     addEventListener(type,fn){this.events.set(type,fn);}
     removeEventListener(type){this.events.delete(type);}
     getBoundingClientRect(){return {left:0,top:0,right:1280,bottom:900,width:1280,height:900};}
-    attachShadow(){this.shadowRoot=new Element('shadow');return this.shadowRoot;}
-    set innerHTML(_html){this.holder=new Element('div');this.holder.hidden=true;this.launcher=new Element('button');}
+    attachShadow(){this.shadowRoot=new Element('shadow');this.shadowRoot.host=this;return this.shadowRoot;}
+    set innerHTML(_html){
+      this.holder=new Element('div');this.holder.hidden=true;this.launcher=new Element('button');
+      this.holder.getBoundingClientRect=()=>{const width=Math.min(400,context.innerWidth-32),height=Math.min(600,context.innerHeight-32),left=Number.parseFloat(this.holder.style.left)||0,top=Number.parseFloat(this.holder.style.top)||0;return {left,top,width,height,right:left+width,bottom:top+height};};
+      this.launcher.getBoundingClientRect=()=>{const style=this.host.style,width=48,height=48,left=style.left&&style.left!=='auto'?Number.parseFloat(style.left):context.innerWidth-width-Number.parseFloat(style.right||24),top=style.top&&style.top!=='auto'?Number.parseFloat(style.top):context.innerHeight-height-Number.parseFloat(style.bottom||24);return {left,top,width,height,right:left+width,bottom:top+height};};
+    }
     querySelector(selector){return selector==='.holder'?this.holder:selector==='.launcher'?this.launcher:null;}
     getContext(){return {drawImage(){counts.draws++;},globalAlpha:1};}
+    setPointerCapture(id){this.captured.add(id);}
+    hasPointerCapture(id){return this.captured.has(id);}
+    releasePointerCapture(id){if(this.captured.delete(id))dispatch(this,'lostpointercapture',{pointerId:id});}
+    focus(){this.focused=true;}
   }
   const container=options.screen?new Element('div'):null;
   container?.setAttribute('data-screen',options.screen);
@@ -131,14 +150,15 @@ function contentHarness(initial,delayed=false,live=false,options={}){
   const video=createVideo();let currentVideo=video;
   const html=new Element('html'),body=new Element('body');
   const document={documentElement:html,body,hidden:false,fullscreenElement:null,
-    createElement:tag=>new Element(tag),querySelector(){return null;},addEventListener(){},
+    createElement:tag=>new Element(tag),querySelector(){return null;},addEventListener(type,fn){documentEvents.set(type,fn);},
     querySelectorAll(selector){if(selector==='video'||selector==='#live-player video'){counts.videoQueries++;return [currentVideo];}return [];}
   };
   const initialPromise=delayed?new Promise(resolve=>{resolveInitial=resolve;}):Promise.resolve(B.sanitize(initial));
-  const api={...B,storage:{get:()=>initialPromise,subscribe(fn){onSettings=fn;}}};
+  const api={...B,storage:{get:()=>initialPromise,subscribe(fn){onSettings=fn;}},
+    mountPanel(){panelCalls.mounted++;return {setStatus(){},setBarStatus(){},focus(){panelCalls.focused++;}};}};
   const location=new URL(options.url||(live?'https://live.bilibili.com/25034104':'https://www.bilibili.com/video/example'));
   const context=vm.createContext({BiliGlow:api,document,location,
-    window:{addEventListener(){}},innerWidth:1280,innerHeight:900,
+    window:{addEventListener(type,fn){windowEvents.set(type,fn);}},innerWidth:1280,innerHeight:900,
     getComputedStyle:()=>({objectFit:'contain',visibility:'visible'}),performance:{now:()=>100},console,
     requestAnimationFrame(fn){const id=++nextId;rafs.set(id,fn);return id;},
     setTimeout(fn){const id=++nextId;rafs.set(id,fn);return id;},clearTimeout(id){rafs.delete(id);},
@@ -149,7 +169,13 @@ function contentHarness(initial,delayed=false,live=false,options={}){
   });
   vm.runInContext(source('player.js'),context);
   vm.runInContext(source('content.js'),context);
-  return {counts,html,body,frames,video,context,barConfigurations,
+  return {counts,html,body,frames,video,context,barConfigurations,panelCalls,
+    get ui(){return html.children.find(element=>'biliglowUi' in element.dataset);},
+    get launcher(){return this.ui.shadowRoot.launcher;},get panelHost(){return this.ui.shadowRoot.holder;},
+    pointer(type,values){return dispatch(this.launcher,type,values);},
+    windowEvent(type,values){return dispatch(windowEvents,type,values);},
+    documentEvent(type,values){return dispatch(documentEvents,type,values);},
+    resize(width,height){context.innerWidth=width;context.innerHeight=height;dispatch(windowEvents,'resize');},
     async ready(){await initialPromise;await Promise.resolve();},
     change(values){onSettings(B.sanitize(values));},
     resolveInitial(values){resolveInitial(B.sanitize(values));},
@@ -204,6 +230,31 @@ test('live room honors consent, never creates crop analysis, and revokes immedia
   assert.equal(h.html.hasAttribute('data-biliglow-live'),false);
 });
 
+test('blanc rooms share live consent, light toggles and SPA/player replacement lifecycle',async()=>{
+  const url='https://live.bilibili.com/blanc/25034104/?broadcast_type=0#chat';
+  const settings={enabled:true,removeHorizontalBars:true,removeVerticalBars:true};
+  const h=contentHarness(settings,false,true,{url});await h.ready();h.flush();
+  assert.equal(h.counts.videoQueries,0);assert.equal(h.counts.draws,0);
+  h.change({...settings,privacyAccepted:true});h.flush();
+  assert.equal(h.html.hasAttribute('data-biliglow-live'),true);
+  assert.ok(h.counts.draws>0);assert.equal(h.counts.barCreates,0,'blanc must not use the VOD crop engine');
+  h.navigate('/25034104');h.flush();
+  h.navigate('/blanc/25034104');h.flush();
+  assert.equal(h.html.hasAttribute('data-biliglow-live'),true);assert.equal(h.frames.size,1);
+  const replacement=h.replaceVideo(),draws=h.counts.draws;h.reconcile();h.flush();
+  assert.equal(h.video.events.size,0);assert.ok(replacement.events.size>0);assert.ok(h.counts.draws>draws);
+  h.change({...settings,privacyAccepted:true,enabled:false});h.flush();
+  assert.equal(h.html.hasAttribute('data-biliglow-active'),false);assert.equal(h.frames.size,0);
+  h.change({...settings,privacyAccepted:true});h.flush();
+  assert.equal(h.html.hasAttribute('data-biliglow-live'),true);
+  h.navigate('/blanc/25034104/extra');h.flush();
+  assert.equal(h.html.hasAttribute('data-biliglow-live'),false);assert.equal(h.frames.size,0);
+  h.navigate(url);h.flush();assert.equal(h.html.hasAttribute('data-biliglow-live'),true);
+  h.change({...settings,privacyAccepted:false});h.flush();
+  assert.equal(h.html.hasAttribute('data-biliglow-active'),false);assert.equal(h.frames.size,0);
+  assert.equal(h.counts.barCreates,0);
+});
+
 test('watch-later playback keeps consent gating and reuses the video-wide crop engine',async()=>{
   const url='https://www.bilibili.com/list/watchlater/?bvid=BV1example&oid=123456&t=42#reply123';
   const settings={enabled:true,spread:310,removeHorizontalBars:true,removeVerticalBars:true};
@@ -253,4 +304,109 @@ test('watch-later SPA exit/return and video replacement dispose and rebind the n
   assert.equal(h.html.hasAttribute('data-biliglow-live'),false);assert.equal(h.html.hasAttribute('data-biliglow-active'),true);
   h.change({...settings,privacyAccepted:false});h.flush();
   assert.equal(h.frames.size,0);assert.equal(next.events.size,0);assert.equal(h.counts.barDisposals,3);
+});
+
+function dragLauncher(h,dx,dy,{id=1,end=true}={}){
+  const r=h.launcher.getBoundingClientRect(),start={pointerId:id,clientX:r.left+24,clientY:r.top+24};
+  h.pointer('pointerdown',start);
+  const move=h.pointer('pointermove',{...start,clientX:start.clientX+dx,clientY:start.clientY+dy});
+  if(end)h.pointer('pointerup',{pointerId:id});
+  return move;
+}
+
+test('launcher ignores non-primary pointers and keeps sub-threshold movement as a click',async()=>{
+  const h=contentHarness({privacyAccepted:true,enabled:true});await h.ready();h.flush();
+  const before=h.launcher.getBoundingClientRect();
+  h.pointer('pointerdown',{button:2,pointerId:7});h.pointer('pointermove',{pointerId:7,clientX:-1000});
+  h.pointer('pointerdown',{isPrimary:false,pointerId:8});h.pointer('pointermove',{pointerId:8,clientX:-1000});
+  assert.equal(h.launcher.captured.size,0);assert.deepEqual(h.launcher.getBoundingClientRect(),before);
+  const move=dragLauncher(h,3,3);
+  assert.equal(move.defaultPrevented,false);assert.deepEqual(h.launcher.getBoundingClientRect(),before);
+  assert.equal(h.launcher.hasAttribute('data-dragging'),false);
+  const click=h.pointer('click');
+  assert.equal(click.defaultPrevented,false);assert.equal(h.panelHost.hidden,false);
+  assert.equal(h.launcher.getAttribute('aria-expanded'),'true');assert.equal(h.panelCalls.mounted,1);
+});
+
+test('launcher drag threshold suppresses only the drag click and preserves keyboard activation',async()=>{
+  const h=contentHarness({privacyAccepted:true,enabled:true});await h.ready();h.flush();
+  const before=h.launcher.getBoundingClientRect(),move=dragLauncher(h,-3,-4);
+  assert.equal(move.defaultPrevented,true,'a five-pixel movement starts dragging');
+  assert.equal(h.launcher.getBoundingClientRect().left,before.left-3);
+  assert.equal(h.launcher.getBoundingClientRect().top,before.top-4);
+  assert.equal(h.launcher.captured.size,0);assert.equal(h.launcher.hasAttribute('data-dragging'),false);
+  const click=h.pointer('click');
+  assert.equal(click.defaultPrevented,true);assert.equal(click.propagationStopped,true);assert.equal(h.panelHost.hidden,true);
+  h.pointer('click',{detail:0});assert.equal(h.panelHost.hidden,false,'Enter/Space activation still opens the panel');
+  dragLauncher(h,-40,-30);
+  h.pointer('click',{detail:0});assert.equal(h.panelHost.hidden,true,'keyboard activation is not swallowed even immediately after dragging');
+  h.pointer('pointerdown');h.pointer('pointerup');h.pointer('click');
+  assert.equal(h.panelHost.hidden,false,'a subsequent ordinary click is not suppressed');
+  assert.equal(h.panelCalls.mounted,1,'the settings panel is reused across drags and activations');
+});
+
+test('launcher position resets on both light toggles and consent changes but survives preset adjustments',async()=>{
+  const active={privacyAccepted:true,enabled:true};
+  const h=contentHarness(active);await h.ready();h.flush();
+  dragLauncher(h,-260,-180);const moved=h.launcher.getBoundingClientRect();
+  h.change({...active,...B.presets.vivid});h.flush();
+  assert.deepEqual(h.launcher.getBoundingClientRect(),moved,'changing a preset must not reset the launcher');
+  h.change({...active,strength:65,spread:400,smoothing:45,dark:false});h.flush();
+  assert.deepEqual(h.launcher.getBoundingClientRect(),moved,'individual light adjustments preserve the position');
+  const assertDefault=()=>{
+    assert.equal(h.ui.style.left,'auto');assert.equal(h.ui.style.top,'auto');
+    assert.equal(h.ui.style.right,'24px');assert.equal(h.ui.style.bottom,'24px');
+    const r=h.launcher.getBoundingClientRect();assert.equal(r.right,h.context.innerWidth-24);assert.equal(r.bottom,h.context.innerHeight-24);
+  };
+  h.change({...active,enabled:false});h.flush();assertDefault();
+  dragLauncher(h,-150,-90);assert.notEqual(h.ui.style.left,'auto');
+  h.change(active);h.flush();assertDefault();
+  dragLauncher(h,-200,-80,{end:false});assert.equal(h.launcher.captured.size,1);
+  h.change({privacyAccepted:false,enabled:true});h.flush();assertDefault();
+  assert.equal(h.launcher.captured.size,0);assert.equal(h.launcher.hasAttribute('data-dragging'),false);
+  dragLauncher(h,-120,-90);h.change(active);h.flush();assertDefault();
+});
+
+test('launcher clamps to the viewport and re-clamps after resize without leaving an active drag',async()=>{
+  const h=contentHarness({privacyAccepted:true,enabled:true});await h.ready();h.flush();
+  dragLauncher(h,-10000,-10000);let r=h.launcher.getBoundingClientRect();
+  assert.equal(r.left,8);assert.equal(r.top,8);
+  dragLauncher(h,10000,10000,{end:false});r=h.launcher.getBoundingClientRect();
+  assert.equal(r.right,h.context.innerWidth-8);assert.equal(r.bottom,h.context.innerHeight-8);
+  assert.equal(h.launcher.captured.size,1);
+  h.resize(640,400);h.flush();r=h.launcher.getBoundingClientRect();
+  assert.equal(r.right,632);assert.equal(r.bottom,392);assert.equal(h.launcher.captured.size,0);
+  assert.equal(h.launcher.hasAttribute('data-dragging'),false);
+  h.pointer('pointermove',{clientX:0,clientY:0});assert.deepEqual(h.launcher.getBoundingClientRect(),r,'stale pointer moves after resize are ignored');
+  h.html.clientWidth=625;h.resize(640,400);h.flush();
+  assert.equal(h.launcher.getBoundingClientRect().right,617,'the vertical scrollbar gutter is excluded from the drag area');
+});
+
+test('pointer cancellation, lost capture and window blur terminate launcher dragging',async()=>{
+  const h=contentHarness({privacyAccepted:true,enabled:true});await h.ready();h.flush();
+  for(const ending of ['pointercancel','lostpointercapture','blur']){
+    dragLauncher(h,-50,-40,{id:3,end:false});
+    assert.equal(h.launcher.hasPointerCapture(3),true);assert.equal(h.launcher.hasAttribute('data-dragging'),true);
+    const position=h.launcher.getBoundingClientRect();
+    h.pointer('pointermove',{pointerId:4,clientX:0,clientY:0});
+    h.pointer('pointerup',{pointerId:4});assert.deepEqual(h.launcher.getBoundingClientRect(),position);assert.equal(h.launcher.hasPointerCapture(3),true);
+    if(ending==='blur')h.windowEvent('blur');
+    else if(ending==='lostpointercapture')h.launcher.releasePointerCapture(3);
+    else h.pointer(ending,{pointerId:3});
+    assert.equal(h.launcher.captured.size,0,ending);assert.equal(h.launcher.hasAttribute('data-dragging'),false,ending);
+    h.pointer('pointermove',{pointerId:3,clientX:1,clientY:1});assert.deepEqual(h.launcher.getBoundingClientRect(),position,ending);
+  }
+  const nativeDrag=h.pointer('dragstart');assert.equal(nativeDrag.defaultPrevented,true,'the icon cannot trigger the browser image-drag behavior');
+});
+
+test('an open launcher panel stays inside the viewport while dragging and resizing',async()=>{
+  const h=contentHarness({privacyAccepted:true,enabled:true});await h.ready();h.flush();
+  h.pointer('click',{detail:0});assert.equal(h.panelHost.hidden,false);
+  const assertContained=()=>{const p=h.panelHost.getBoundingClientRect();assert.ok(p.left>=8&&p.top>=8);assert.ok(p.right<=h.context.innerWidth-8&&p.bottom<=h.context.innerHeight-8);};
+  assertContained();dragLauncher(h,-10000,-10000);assertContained();
+  let r=h.launcher.getBoundingClientRect(),p=h.panelHost.getBoundingClientRect();assert.ok(p.top>=r.bottom+12,'a launcher near the top opens its panel below');
+  dragLauncher(h,10000,10000);assertContained();h.resize(600,420);h.flush();assertContained();
+  assert.equal(h.panelHost.hidden,false,'moving or resizing does not close settings');
+  h.ui.events.get('keydown')({key:'Escape',stopPropagation(){}});
+  assert.equal(h.panelHost.hidden,true);assert.equal(h.launcher.getAttribute('aria-expanded'),'false');assert.equal(h.launcher.focused,true);
 });
