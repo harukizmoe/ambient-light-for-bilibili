@@ -1,6 +1,7 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
+const vm=require('node:vm');
 require('../extension/shared.js');
 const B=globalThis.BiliGlow;
 test('invalid stored settings cannot escape supported ranges or add keys',()=>{
@@ -69,6 +70,45 @@ test('storage patches preserve unrelated values',async()=>{
   await B.storage.set({strength:50});await B.storage.set({dark:false});
   const stored=await B.storage.get();assert.equal(stored.strength,50);assert.equal(stored.dark,false);
   await B.storage.set(B.defaults);
+});
+test('launcher hiding is opt-in for existing settings and accepts only actual booleans',()=>{
+  const old={privacyAccepted:true,enabled:true,strength:103,spread:310,dark:false};
+  const upgraded=B.sanitize(old);
+  assert.equal(B.defaults.hideLauncher,false);assert.equal(upgraded.hideLauncher,false);
+  for(const [key,value] of Object.entries(old))assert.equal(upgraded[key],value,key);
+  for(const value of [undefined,null,'true','false',0,1,[],{},NaN]){
+    assert.equal(B.sanitize({hideLauncher:value}).hideLauncher,false,`${String(value)} cannot hide the launcher`);
+  }
+  assert.equal(B.sanitize({hideLauncher:true}).hideLauncher,true);
+  assert.equal(B.sanitize({hideLauncher:false}).hideLauncher,false);
+});
+test('launcher visibility persists across extension contexts, reloads and light toggles',async()=>{
+  const stored={privacyAccepted:true,enabled:true,strength:103},listeners=new Set(),writes=[];
+  const shared=fs.readFileSync(__dirname+'/../extension/shared.js','utf8');
+  function load(){
+    const context=vm.createContext({chrome:{storage:{
+      local:{async get(keys){return Object.fromEntries(keys.filter(key=>key in stored).map(key=>[key,stored[key]]));},async set(patch){
+        writes.push({...patch});const changes={};
+        for(const [key,value] of Object.entries(patch)){changes[key]={oldValue:stored[key],newValue:value};stored[key]=value;}
+        for(const listener of listeners)listener(changes,'local');
+      }},onChanged:{addListener(fn){listeners.add(fn);},removeListener(fn){listeners.delete(fn);}}
+    }}});
+    vm.runInContext(shared,context);return context.BiliGlow;
+  }
+  const popup=load(),content=load(),contentChanges=[];
+  assert.equal((await content.storage.get()).hideLauncher,false);assert.equal(writes.length,0,'reading old storage must not rewrite it');
+  const unsubscribe=content.storage.subscribe(settings=>contentChanges.push(settings));
+  try{
+    await popup.storage.set({hideLauncher:true});await new Promise(setImmediate);
+    assert.equal(stored.hideLauncher,true);assert.equal(contentChanges.at(-1).hideLauncher,true);
+    assert.equal((await load().storage.get()).hideLauncher,true,'a newly loaded page reads the saved hidden preference');
+    await popup.storage.set({enabled:false});await popup.storage.set(B.presets.vivid);await popup.storage.set({enabled:true});
+    const reread=await content.storage.get();
+    assert.equal(reread.hideLauncher,true);assert.equal(reread.enabled,true);assert.equal(reread.strength,100);
+    await popup.storage.set({hideLauncher:false});await new Promise(setImmediate);
+    assert.equal(contentChanges.at(-1).hideLauncher,false);assert.equal((await load().storage.get()).hideLauncher,false);
+    assert.equal(stored.privacyAccepted,true,'changing launcher visibility does not change consent');
+  }finally{unsubscribe();}
 });
 test('bar removal is opt-in when upgrading existing settings and rejects truthy non-booleans',()=>{
   const existing=B.sanitize({strength:100,spread:310,dark:true});

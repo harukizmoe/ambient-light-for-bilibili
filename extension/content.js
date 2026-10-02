@@ -2,7 +2,7 @@
   'use strict';
   if (document.querySelector('[data-biliglow-root]')) return;
   const B=globalThis.BiliGlow,P=globalThis.BiliGlowPlayer;
-  let settings={...B.defaults},video=null,cleanVideo=()=>{},frameId=null,timerId=null,layoutId=null;
+  let settings={...B.defaults},settingsReady=false,video=null,cleanVideo=()=>{},frameId=null,timerId=null,layoutId=null;
   let lastFrame=0,nextPaint=0,needsDraw=false,painted=false,visible=false,blocked=false,supported=false,layoutDirty=true,frames=0;
   let status={text:'等待播放器',error:false},ui=null,panel=null,panelHost=null,launcher=null,root=null,canvas=null,ctx=null;
   let stage=null,mode='normal',barEffect=null,barStatus='宽屏去边已关闭';
@@ -71,15 +71,15 @@
     root.setAttribute('aria-hidden','true');
     // A negative child of the isolated body paints AFTER its background but BEFORE page content.
     root.style.cssText='position:fixed;inset:0;pointer-events:none!important;z-index:-1;overflow:hidden;contain:strict;display:none;';
-    root.dataset.version='0.5.3.5';
+    root.dataset.version='0.5.3.6';
     const shadow=root.attachShadow({mode:'open'});
     canvas=document.createElement('canvas');canvas.width=256;canvas.height=144;
     canvas.style.cssText='position:absolute;pointer-events:none;transform-origin:center;';shadow.append(canvas);
     ctx=canvas.getContext('2d',{alpha:false});document.body.append(root);
     ui=document.createElement('div');ui.dataset.biliglowUi='';
-    ui.style.cssText='position:fixed;right:24px;bottom:24px;z-index:2147483001;color-scheme:dark;';
+    ui.style.cssText='position:fixed;right:24px;bottom:24px;z-index:2147483001;color-scheme:dark;pointer-events:none;';
     const uiShadow=ui.attachShadow({mode:'open'});
-    uiShadow.innerHTML=`<style>${B.css}.holder{position:fixed;overflow:visible;border-radius:16px}.holder[hidden]{display:none}</style><div class="holder" hidden></div><button class="launcher" type="button" aria-label="打开氛围光设置" title="氛围光设置 · 可拖动" aria-expanded="false">${B.mark}</button>`;
+    uiShadow.innerHTML=`<style>${B.css}.holder{position:fixed;overflow:visible;border-radius:16px;pointer-events:auto}.holder[hidden]{display:none}</style><div class="holder" hidden></div><button class="launcher" type="button" aria-label="打开氛围光设置" title="氛围光设置 · 可拖动" aria-expanded="false">${B.mark}</button>`;
     panelHost=uiShadow.querySelector('.holder');launcher=uiShadow.querySelector('.launcher');
     launcher.addEventListener('pointerdown',event=>{
       if(event.button!==0||!event.isPrimary||drag)return;
@@ -107,8 +107,17 @@
       suppressLauncherClick=false;togglePanel(panelHost.hidden);
     });
     ui.addEventListener('keydown',event=>{if(event.key==='Escape'&&!panelHost.hidden){togglePanel(false);event.stopPropagation();}});
-    document.documentElement.append(ui);
+    syncLauncherVisibility();document.documentElement.append(ui);
     new ResizeObserver(positionPanel).observe(panelHost);
+  }
+  function syncLauncherVisibility(){
+    if(!launcher)return;
+    const hidden=!settingsReady||settings.hideLauncher;
+    if(hidden)cancelLauncherDrag();
+    // Keep its geometry as the open panel's anchor, but leave no pointer target.
+    launcher.style.visibility=hidden?'hidden':'visible';
+    launcher.style.pointerEvents=hidden?'none':'auto';
+    launcher.tabIndex=hidden?-1:0;launcher.setAttribute('aria-hidden',String(hidden));
   }
   function cancelLauncherDrag(){
     if(!drag)return;
@@ -149,7 +158,7 @@
     if(open&&!panel){panel=B.mountPanel(panelHost.attachShadow({mode:'open'}),{closable:true,onClose:()=>togglePanel(false)});panel.setStatus(status.text,status.error);panel.setBarStatus(barStatus);}
     panelHost.hidden=!open;launcher.setAttribute('aria-expanded',String(open));
     positionPanel();
-    if(open)panel.focus();else launcher.focus();
+    if(open)panel.focus();else if(!settings.hideLauncher)launcher.focus();
   }
   function cancelFrames(){
     if(frameId!==null&&video?.cancelVideoFrameCallback)video.cancelVideoFrameCallback(frameId);
@@ -304,10 +313,10 @@
   let settingsRevision=0;
   function apply(next){
     const toggled=next.enabled!==settings.enabled||B.isActive(next)!==B.isActive(settings);
-    settingsRevision++;settings=next;reconcile();if(toggled)resetLauncher();invalidate();
+    settingsRevision++;settingsReady=true;settings=next;reconcile();syncLauncherVisibility();if(toggled)resetLauncher();invalidate();
   }
   const initialRevision=settingsRevision;
-  B.storage.get().then(next=>{if(settingsRevision===initialRevision)apply(next);}).catch(()=>setStatus('设置读取失败，当前使用默认值',true));
+  B.storage.get().then(next=>{if(settingsRevision===initialRevision)apply(next);}).catch(()=>{settingsReady=true;syncLauncherVisibility();setStatus('设置读取失败，当前使用默认值',true);});
   B.storage.subscribe(apply,{onRevoke:()=>apply({...settings,privacyAccepted:false})});
   window.addEventListener('resize',()=>{cancelLauncherDrag();positionLauncher();invalidate();},{passive:true});
   window.addEventListener('scroll',invalidate,{passive:true,capture:true});

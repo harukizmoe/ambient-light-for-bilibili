@@ -1,5 +1,14 @@
 扩展验证记录 — 2026-10-02
 
+0.5.3.6 隐藏悬浮图标（GitHub 正式版）
+基线：正式版 v0.5.3.5 / a105769；当前 manifest 0.5.3.6。
+- 新增 hideLauncher:false 布尔偏好，在更多/深色背景下设置独立「页面图标」区域；使用既有 chrome.storage.local 管道保存，不增加权限。
+- Chrome 本地生产脚本实测：开关隐藏和恢复入口，隐藏后 aria-hidden=true、tabIndex=-1、visibility=hidden，原位置命中页面 DIV，uiInterceptsOldPosition=false。切换前后绘制计数从2378增加至2386，后续3979；开启/关闭氛围光后仍保持隐藏，当前面板保留且不越界。
+- 同一 mountPanel 的实际 popup.html 本地预览可操作新增开关，说明中保留从浏览器工具栏恢复的方法。截图 qa/hidden-launcher-settings.jpg；DOM状态 qa/hidden-launcher-browser-results.json。
+- 59/59 Node 测试通过，新增7项回归涵盖旧设置默认值、布尔清洗、双扩展上下文存储通知/重读、延迟读取防闪现/失败恢复、隐藏后继续采样、关闭面板焦点、取消拖动和再次显示。跨上下文持久化在测试模拟的 chrome.storage 中验证，未冒充已安装扩展实测。
+- 当前合成直播页面自检结果为19/19；此次功能专项以新增单元测试和直接UI操作为主。B站实际扩展重载、浏览器宿主跨页同步及其他浏览器仍需真实宿主验收。
+- 按用户要求发布0.5.3.6正式版并设为Latest，核验成功后移除v0.5.3.5的Release条目；保留Git版本标签与提交历史。商店未重新提交。
+
 0.5.3.5 原版直播间 /blanc/（GitHub 正式版）
 基线：本地 0.5.3.4；当前 manifest 0.5.3.5。
 - 实际打开 https://live.bilibili.com/blanc/25034104，页面保留 /blanc/ 路径。主视频位于 #live-player，尺寸 1920×1080；#player-ctnr、#aside-area-vm、#chat-control-panel-vm、#gift-control-vm、#head-info-vm、#sections-vm、#pay-note-panel-vm 均存在，播放器祖先与原直播布局一致。另有主播放器外的隐藏视频，现有选择逻辑继续排除它。

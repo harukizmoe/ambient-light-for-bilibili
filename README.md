@@ -1,14 +1,16 @@
 # Ambient light for Bilibili
 
-为 Bilibili 桌面播放页添加随视频变化的氛围光。当前正式版 **0.5.3.5**，Manifest V3，原生 JavaScript，无构建步骤或运行时依赖。
+为 Bilibili 桌面播放页添加随视频变化的氛围光。当前正式版 **0.5.3.6**，Manifest V3，原生 JavaScript，无构建步骤或运行时依赖。
 
 ![扩展图标](extension/icons/128.png)
 
-## 0.5.3.5 正式版
+## 0.5.3.6 正式版
 
-[GitHub 最新正式版 0.5.3.5](https://github.com/tosya301/ambient-light-for-bilibili/releases/tag/v0.5.3.5) 提供源码与安装包。支持 `https://live.bilibili.com/blanc/房间号` 原版直播间链接，与普通数字房间链接使用同一套光效、透明界面和可拖动圆形入口。末尾斜杠、查询参数和锚点不影响识别；不自动跳转页面，不改写播放器，不增加权限。
+[GitHub 最新正式版 0.5.3.6](https://github.com/tosya301/ambient-light-for-bilibili/releases/tag/v0.5.3.6) 提供源码与安装包。支持 `https://live.bilibili.com/blanc/房间号` 原版直播间链接，与普通数字房间链接使用同一套光效、透明界面和可拖动圆形入口。末尾斜杠、查询参数和锚点不影响识别；不自动跳转页面，不改写播放器，不增加权限。
 
-重新加载本目录 `extension` 后刷新 `/blanc/` 直播页即可沿用已有设置。真实页面已确认主要播放器与界面结构一致；更新后的扩展注入仍需宿主验收。本次正式版包含下述圆形可拖动入口与此前所有直播、稍后再看修复。可在 [原版路径本地验证页](http://127.0.0.1:8768/demo/live.html?blanc=1) 运行合成直播检查，详情见 [QA.txt](QA.txt)。
+「更多」中，在「深色页面背景」下新增「页面图标」区域，可打开「隐藏悬浮图标」。默认关闭，选择保存于当前浏览器本机；隐藏只影响页面入口，不关闭氛围光。需要恢复时，从浏览器工具栏的扩展图标进入设置，关闭此选项即可。
+
+重新加载本目录 `extension` 后刷新视频或直播页即可沿用已有设置。真实页面已确认主要播放器与界面结构一致；更新后的扩展注入仍需宿主验收。本次正式版包含下述圆形可拖动入口与此前所有直播、稍后再看修复。59 项 Node 测试通过，隐藏、恢复、面板布局和不拦截点击已做本地浏览器验证。可在 [原版路径本地验证页](http://127.0.0.1:8768/demo/live.html?blanc=1) 运行合成直播检查，详情见 [QA.txt](QA.txt)。
 
 ## 0.5.3.4 可拖动圆形入口（随 0.5.3.5 发布）
 
@@ -57,7 +59,7 @@
 
 ## 安装与使用
 
-下载 [GitHub 0.5.3.5 正式版](https://github.com/tosya301/ambient-light-for-bilibili/releases/tag/v0.5.3.5)的 `Ambient-light-for-Bilibili-0.5.3.5.zip`，解压后可本地加载。包含点播、稍后再看、普通与 `/blanc/` 直播间、透明界面和圆形拖动入口。Chrome Web Store 与 Microsoft Edge Add-ons 的 0.5.2 已于 2026-10-01 提交审核；本次只更新 GitHub，未重新提交商店。
+下载 [GitHub 0.5.3.6 正式版](https://github.com/tosya301/ambient-light-for-bilibili/releases/tag/v0.5.3.6)的 `Ambient-light-for-Bilibili-0.5.3.6.zip`，解压后可本地加载。包含点播、稍后再看、普通与 `/blanc/` 直播间、透明界面和圆形拖动入口。Chrome Web Store 与 Microsoft Edge Add-ons 的 0.5.2 已于 2026-10-01 提交审核；本次只更新 GitHub，未重新提交商店。
 
 本地安装：下载本仓库，在浏览器扩展管理页打开开发者模式，选择“加载已解压的扩展”，加载 **extension** 文件夹，然后刷新 Bilibili 播放页面。
 

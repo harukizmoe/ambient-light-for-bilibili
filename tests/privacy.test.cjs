@@ -99,7 +99,7 @@ function contentHarness(initial,delayed=false,live=false,options={}){
   const counts={videoQueries:0,videoReads:0,draws:0,barCreates:0,barSamples:0,barDisposals:0,cancelled:0};
   const barConfigurations=[];
   const windowEvents=new Map(),documentEvents=new Map(),panelCalls={mounted:0,focused:0};
-  const rafs=new Map(),frames=new Map(),intervals=[];let nextId=0,onSettings,resolveInitial;
+  const rafs=new Map(),frames=new Map(),intervals=[];let nextId=0,onSettings,resolveInitial,rejectInitial;
   function dispatch(target,type,values={}){
     const event={button:0,isPrimary:true,pointerId:1,clientX:0,clientY:0,detail:1,defaultPrevented:false,propagationStopped:false,
       preventDefault(){this.defaultPrevented=true;},stopPropagation(){this.propagationStopped=true;},...values};
@@ -107,7 +107,7 @@ function contentHarness(initial,delayed=false,live=false,options={}){
   }
   function styleObject(){
     const style={setProperty(name,value){this[name]=value;},removeProperty(name){delete this[name];}};
-    Object.defineProperty(style,'cssText',{set(value){for(const item of value.split(';')){const [name,...parts]=item.split(':');if(parts.length)this[name.trim()]=parts.join(':').trim();}}});
+    Object.defineProperty(style,'cssText',{set(value){for(const item of value.split(';')){const [name,...parts]=item.split(':');if(parts.length)this[name.trim().replace(/-([a-z])/g,(_match,letter)=>letter.toUpperCase())]=parts.join(':').trim();}}});
     return style;
   }
   class Element{
@@ -153,9 +153,9 @@ function contentHarness(initial,delayed=false,live=false,options={}){
     createElement:tag=>new Element(tag),querySelector(){return null;},addEventListener(type,fn){documentEvents.set(type,fn);},
     querySelectorAll(selector){if(selector==='video'||selector==='#live-player video'){counts.videoQueries++;return [currentVideo];}return [];}
   };
-  const initialPromise=delayed?new Promise(resolve=>{resolveInitial=resolve;}):Promise.resolve(B.sanitize(initial));
+  const initialPromise=delayed?new Promise((resolve,reject)=>{resolveInitial=resolve;rejectInitial=reject;}):Promise.resolve(B.sanitize(initial));
   const api={...B,storage:{get:()=>initialPromise,subscribe(fn){onSettings=fn;}},
-    mountPanel(){panelCalls.mounted++;return {setStatus(){},setBarStatus(){},focus(){panelCalls.focused++;}};}};
+    mountPanel(_root,configuration){panelCalls.mounted++;panelCalls.close=configuration.onClose;return {setStatus(){},setBarStatus(){},focus(){panelCalls.focused++;}};}};
   const location=new URL(options.url||(live?'https://live.bilibili.com/25034104':'https://www.bilibili.com/video/example'));
   const context=vm.createContext({BiliGlow:api,document,location,
     window:{addEventListener(type,fn){windowEvents.set(type,fn);}},innerWidth:1280,innerHeight:900,
@@ -179,7 +179,9 @@ function contentHarness(initial,delayed=false,live=false,options={}){
     async ready(){await initialPromise;await Promise.resolve();},
     change(values){onSettings(B.sanitize(values));},
     resolveInitial(values){resolveInitial(B.sanitize(values));},
+    rejectInitial(error){rejectInitial(error);},
     flush(){const pending=[...rafs.values()];rafs.clear();for(const fn of pending)fn(120);},
+    frame(now=1000){const [id,fn]=frames.entries().next().value||[];if(fn){frames.delete(id);fn(now);}},
     reconcile(){for(const fn of intervals)fn();},
     navigate(url){location.href=new URL(url,location).href;for(const fn of intervals)fn();},
     replaceVideo(){currentVideo.isConnected=false;currentVideo=createVideo();return currentVideo;}
@@ -409,4 +411,73 @@ test('an open launcher panel stays inside the viewport while dragging and resizi
   assert.equal(h.panelHost.hidden,false,'moving or resizing does not close settings');
   h.ui.events.get('keydown')({key:'Escape',stopPropagation(){}});
   assert.equal(h.panelHost.hidden,true);assert.equal(h.launcher.getAttribute('aria-expanded'),'false');assert.equal(h.launcher.focused,true);
+});
+
+const assertLauncherHidden=h=>{
+  assert.equal(h.launcher.style.visibility,'hidden');assert.equal(h.launcher.tabIndex,-1);
+  assert.equal(h.launcher.getAttribute('aria-hidden'),'true');
+};
+const assertLauncherVisible=h=>{
+  assert.notEqual(h.launcher.style.visibility,'hidden');assert.equal(h.launcher.tabIndex,0);
+  assert.notEqual(h.launcher.getAttribute('aria-hidden'),'true');
+};
+
+test('launcher stays hidden until initial preferences arrive without flashing saved-hidden state',async()=>{
+  const h=contentHarness({},true);assertLauncherHidden(h);
+  h.flush();h.reconcile();assertLauncherHidden(h);assert.equal(h.counts.videoQueries,0);
+  h.resolveInitial({privacyAccepted:true,enabled:true,hideLauncher:true});await h.ready();h.flush();
+  assertLauncherHidden(h);assert.ok(h.counts.draws>0,'saved hidden launcher does not disable the light');
+  const old=contentHarness({},true);assertLauncherHidden(old);
+  old.resolveInitial({privacyAccepted:true,enabled:true,strength:90});await old.ready();old.flush();
+  assertLauncherVisible(old);assert.ok(old.counts.draws>0,'preference-less upgrades regain their normal visible launcher');
+});
+
+test('failed initial settings read restores the launcher without bypassing consent',async()=>{
+  const h=contentHarness({},true);assertLauncherHidden(h);
+  h.rejectInitial(new Error('Storage unavailable'));await new Promise(setImmediate);h.flush();h.reconcile();
+  assertLauncherVisible(h);assert.equal(h.counts.videoQueries,0);assert.equal(h.counts.draws,0);
+  assert.equal(h.html.hasAttribute('data-biliglow-active'),false);
+});
+
+test('hiding the launcher preserves rendering, its position and the open settings panel',async()=>{
+  const active={privacyAccepted:true,enabled:true,hideLauncher:false};
+  const h=contentHarness(active);await h.ready();h.flush();
+  dragLauncher(h,-250,-170);h.pointer('click',{detail:0});assert.equal(h.panelHost.hidden,false);
+  const position=h.launcher.getBoundingClientRect(),engine=h.counts.barCreates,disposals=h.counts.barDisposals;
+  h.change({...active,hideLauncher:true});h.flush();
+  assertLauncherHidden(h);assert.equal(h.ui.style.pointerEvents,'none','hidden launcher must not leave an invisible click-blocking host');
+  assert.deepEqual(h.launcher.getBoundingClientRect(),position);assert.equal(h.panelHost.hidden,false);
+  assert.equal(h.launcher.getAttribute('aria-expanded'),'true');assert.equal(h.counts.barCreates,engine);assert.equal(h.counts.barDisposals,disposals);
+  const draws=h.counts.draws;h.frame(1000);
+  assert.ok(h.counts.draws>draws);assert.equal(h.frames.size,1);assert.equal(h.html.hasAttribute('data-biliglow-active'),true);
+  h.launcher.focused=false;h.panelCalls.close();
+  assert.equal(h.panelHost.hidden,true);assert.equal(h.launcher.getAttribute('aria-expanded'),'false');
+  assert.equal(h.launcher.focused,false,'closing settings must not focus an aria-hidden launcher');
+  h.change(active);h.flush();assertLauncherVisible(h);assert.deepEqual(h.launcher.getBoundingClientRect(),position);
+  h.pointer('pointerdown');h.pointer('pointerup');h.pointer('click');
+  assert.equal(h.panelHost.hidden,false);assert.equal(h.panelCalls.mounted,1,'showing the launcher restores access to the same settings panel');
+});
+
+test('hiding during a drag releases capture and ignores stale moves without resetting position',async()=>{
+  const active={privacyAccepted:true,enabled:true,hideLauncher:false};
+  const h=contentHarness(active);await h.ready();h.flush();
+  dragLauncher(h,-180,-100,{id:3,end:false});assert.equal(h.launcher.hasPointerCapture(3),true);
+  const position=h.launcher.getBoundingClientRect();
+  h.change({...active,hideLauncher:true});h.flush();assertLauncherHidden(h);
+  assert.equal(h.launcher.captured.size,0);assert.equal(h.launcher.hasAttribute('data-dragging'),false);
+  h.pointer('pointermove',{pointerId:3,clientX:0,clientY:0});h.pointer('pointerup',{pointerId:3});
+  assert.deepEqual(h.launcher.getBoundingClientRect(),position);
+  h.change(active);h.flush();assertLauncherVisible(h);assert.deepEqual(h.launcher.getBoundingClientRect(),position);
+  dragLauncher(h,-20,-20);assert.equal(h.launcher.getBoundingClientRect().left,position.left-20,'dragging works again after revealing the button');
+});
+
+test('hidden launcher preference remains effective across light off/on and preset changes',async()=>{
+  const active={privacyAccepted:true,enabled:true,hideLauncher:true};
+  const h=contentHarness(active);await h.ready();h.flush();assertLauncherHidden(h);assert.equal(h.frames.size,1);
+  h.change({...active,enabled:false});h.flush();assertLauncherHidden(h);
+  assert.equal(h.frames.size,0);assert.equal(h.html.hasAttribute('data-biliglow-active'),false);
+  h.change({...active,...B.presets.soft,enabled:false});h.flush();assertLauncherHidden(h);assert.equal(h.frames.size,0);
+  h.change({...active,...B.presets.soft});h.flush();assertLauncherHidden(h);assert.equal(h.frames.size,1);
+  const draws=h.counts.draws;h.frame(1200);assert.ok(h.counts.draws>draws);
+  h.change({...active,hideLauncher:false});h.flush();assertLauncherVisible(h);assert.equal(h.frames.size,1);
 });
