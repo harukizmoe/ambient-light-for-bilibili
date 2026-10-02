@@ -1,7 +1,18 @@
-直播预览版验证记录 — 2026-10-02
+扩展验证记录 — 2026-10-02
+
+0.5.3.3 稍后再看修复
+基线：GitHub v0.5.3.2 / 391ef5f；当前 manifest 0.5.3.3。
+- 真实页面确认 /list/watchlater/ 路由；存在正常播放的 video、普通 .bpx-player-container[data-screen] 和 BILI-COMMENTS Shadow DOM。旧版路由白名单排除了此页，未创建氛围光根节点。
+- 观察并读取当前页面样式：.playlist-app、.action-list-container、singlep/multip 队列、分 P 选中项、标题、作者和工具栏。新 CSS 限定 active + playlist-app，不清除封面、播放指示器与菜单。
+- 43 项 Node 测试通过，包括精准路由/参数、拒绝近似路径、同意/撤回、宽屏去边引擎复用、SPA 离开返回及播放器替换。新增测试在修复前出现 3 项预期失败，修复后通过。
+- Chrome 本地稍后再看专项 19 项通过，复用生产脚本和 CSS。为检验真实路由白名单，测试页只将本地主机映射为 www.bilibili.com，并把初始演示路径映射为 /list/watchlater/；分类结果仍由生产 pageKind 返回，采样、播放器和渲染逻辑不变。
+- 同一稍后再看复现页上 28 项普通点播浏览器回归通过：透明底板、暂停/恢复、400% 覆盖、宽屏/网页全屏、播放器移除重建和 8fps 限制。浏览器未记录警告或错误。合计 47 项本地浏览器检查；证据见 qa/watchlater-browser-results.json、qa/watchlater-preview.jpg。
+- 去边验证最初使用浅色动态渐变：3 次检查中 2 次未确认裁切，1 次通过。失败诊断显示播放器 readyState=4、正在播放、模式 theater、光效继续绘制，但源图的 detect 返回 null。改为有明确纹理的黑边测试画面后通过；未改生产算法、识别阈值或等待上限（3 秒）。
+- 本地演示不是已安装的 0.5.3.3 在真实 B 站的截图。浏览器工具不能重载扩展，更新后真实宿主仍需用户重新加载验收。
+- 本次发布 GitHub v0.5.3.3 预发布版，安装包与确认的本地 0.5.3.3 校验值一致。未重新提交 Chrome/Edge 商店。
 
 基线：0.5.3 / commit 753b8b2
-版本：manifest 0.5.3.2；version_name 0.5.3 + live preview 2
+历史版本：manifest 0.5.3.2；version_name 0.5.3 + live preview 2
 
 0.5.3.2 本次验证
 - 用户确认当前本地版本可用，并授权更新到 GitHub；此反馈不替代下述专项验证边界。
@@ -41,4 +52,4 @@ qa/live-blue.jpg：蓝色场景预览。
 3. 刷新 Bilibili 数字直播间，在“氛围光”中开启。建议“绚彩”+400%扩散对照参考图；颜色由当前直播内容决定。
 4. 回退：禁用实验版，重新启用旧版并刷新。原 0.5.3 源码目录保持不变。
 
-发布范围：GitHub v0.5.3.2 预发布，扩展文件与用户确认的本地 0.5.3.2 逐字节一致。未重新提交 Chrome Web Store 或 Edge Add-ons。
+历史发布范围：GitHub v0.5.3.2 预发布，扩展文件与用户确认的本地 0.5.3.2 逐字节一致。未重新提交 Chrome Web Store 或 Edge Add-ons。

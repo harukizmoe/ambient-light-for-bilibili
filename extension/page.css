@@ -108,6 +108,28 @@ html[data-biliglow-active] .video-pod__item.active,
 html[data-biliglow-active] .video-pod .simple-base-item.active {
   color: var(--brand_blue, #00aeec) !important;
 }
+/* Watch-later detail playback uses playlist-app instead of video-page-app.
+   Its queue and multi-part selection paint separate surfaces; keep covers,
+   playing indicators, title popovers and action menus intact. */
+html[data-biliglow-active] .playlist-app :is(
+  .video-info-container, #playlistToolbar, .playlist-container--right,
+  .up-panel-container, .recommend-list-container,
+  .action-list-container, .action-list-header, .action-list-body,
+  .action-list-body-top, .action-list-body-bottom, .action-list,
+  .action-list-inner, .action-list-content, .action-list-item-wrap,
+  .action-list-item, .singlep-list-item-inner, .multip-list-item-inner,
+  .multip-list, .multip-list-item
+) {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+html[data-biliglow-active] .playlist-app .up-panel-container .follow-btn {
+  background: var(--biliglow-glass) !important;
+  border-color: var(--biliglow-control-border) !important;
+}
+html[data-biliglow-active][data-biliglow-dark] .playlist-app :is(
+  .video-info-container, #playlistToolbar, .playlist-container--right
+) { text-shadow: 0 1px 3px rgba(0,0,0,.65); }
 /* Recommendation expand/collapse and video tags are separate painted surfaces.
    Do not clear the tag icon's SVG fill or the cover/playing-indicator images. */
 html[data-biliglow-active] .recommend-list-v1 .rec-footer,

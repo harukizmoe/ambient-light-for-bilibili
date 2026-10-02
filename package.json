@@ -1,6 +1,6 @@
 {
   "name": "ambient-light-for-bilibili",
-  "version": "0.5.3-live.2",
+  "version": "0.5.3-preview.3",
   "private": true,
   "description": "Local-only ambient light extension for Bilibili",
   "scripts": {

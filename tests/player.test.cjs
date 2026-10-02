@@ -13,6 +13,24 @@ test('only desktop room URLs and existing playback routes are enabled',()=>{
   assert.equal(P.pageKind(new URL('https://www.bilibili.com/bangumi/play/ep1')),'video');
   assert.equal(P.pageKind(new URL('https://example.com/video/a')),null);
 });
+test('watch-later playback is a video route with either trailing-slash form and playback parameters',()=>{
+  for(const path of ['/list/watchlater','/list/watchlater/']){
+    for(const suffix of ['', '?bvid=BV1example', '?oid=123456789&t=42', '?bvid=BV1example&oid=123456789&t=42#reply123', '#t=90']){
+      const url=new URL(`https://www.bilibili.com${path}${suffix}`);
+      assert.equal(P.pageKind(url),'video',url.href);
+    }
+  }
+});
+test('watch-later support excludes non-playback pages, similar paths and other domains',()=>{
+  for(const path of ['/', '/list/', '/list/watchlater-extra', '/list/watchlater/extra', '/list/watchlater//', '/list/watchlater.html', '/list/watchlater2', '/list/Watchlater/', '/watchlater/', '/list/watchlater%2F']){
+    const url=new URL(`https://www.bilibili.com${path}?bvid=BV1example&oid=123&t=42#watchlater`);
+    assert.equal(P.pageKind(url),null,url.href);
+  }
+  for(const hostname of ['live.bilibili.com','m.bilibili.com','bilibili.com','example.com','www.bilibili.com.example.com']){
+    const url=new URL(`https://${hostname}/list/watchlater/?bvid=BV1example`);
+    assert.equal(P.pageKind(url),null,url.href);
+  }
+});
 const element=(width=960,height=540,parentElement=body,style={})=>({parentElement,style,getBoundingClientRect:()=>({left:0,top:0,width,height}),closest:()=>null});
 test('live selection excludes gift/preview videos and hidden ancestors',()=>{
   const main=element(),hidden=element(2400,1400,element(2400,1400,body,{opacity:'0'}));

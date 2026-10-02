@@ -16,6 +16,12 @@ function animate(ms){
   }
   for(let i=0;i<75;i++){const x=(Math.sin(i*127)*.5+.5)*960,y=(Math.cos(i*119)*.5+.5)*410;paint.fillStyle=`rgba(232,255,248,${.1+(Math.sin(t+i)*.5+.5)*.35})`;paint.fillRect(x,y,i%3===0?2:1,i%3===0?2:1);}
   const bars=document.querySelector('#bar-fixture')?.value;
+  // A deterministic textured source for the watch-later crop integration test.
+  // Pale animated gradients may correctly trigger the detector's flat-frame guard.
+  if(bars==='textured-vertical'){
+    for(let y=0;y<540;y+=30)for(let x=120;x<840;x+=30){paint.fillStyle=(Math.floor(x/30)+Math.floor(y/30))%2?'#37cdb3':'#613586';paint.fillRect(x,y,30,30);}
+    paint.fillStyle='#000';paint.fillRect(0,0,120,540);paint.fillRect(840,0,120,540);
+  }
   if(bars==='horizontal'||bars==='window'){paint.fillStyle='#000';paint.fillRect(0,0,960,54);paint.fillRect(0,486,960,54);}
   if(bars==='vertical'||bars==='window'||bars==='colored'){paint.fillStyle=bars==='colored'?'#754b77':'#000';paint.fillRect(0,0,120,540);paint.fillStyle=bars==='colored'?'#427c91':'#000';paint.fillRect(840,0,120,540);}
   if(bars==='black'){paint.fillStyle='#000';paint.fillRect(0,0,960,540);}
@@ -50,7 +56,8 @@ document.querySelector('#run-tests').addEventListener('click',async event=>{
   try{
     await BiliGlow.storage.set({...BiliGlow.defaults,privacyAccepted:original.privacyAccepted});player.classList.remove('portrait');
     theater(false);
-    const largeSurfaces=['.bili-header__bar','#viewbox_report','.right-container','#arc_toolbar_report','.bpx-player-sending-area','.bpx-player-sending-bar','.bpx-player-video-info','.bpx-player-dm-root','.bpx-player-dm-input'];
+    const playlistFixture=Boolean(document.querySelector('.playlist-app'));
+    const largeSurfaces=['.bili-header__bar',playlistFixture?'.video-info-container':'#viewbox_report',playlistFixture?'.playlist-container--right':'.right-container',playlistFixture?'#playlistToolbar':'#arc_toolbar_report','.bpx-player-sending-area','.bpx-player-sending-bar','.bpx-player-video-info','.bpx-player-dm-root','.bpx-player-dm-input'];
     const alpha=el=>{const c=getComputedStyle(el).backgroundColor;return c.startsWith('rgba')?Number(c.split(',').pop().replace(')','')):1;};
     const playerSurfaces=['#bilibili-player-placeholder','#bilibili-player-placeholder-top','#bilibili-player-placeholder-bottom','#bilibili-player-placeholder-bottom-left','#bilibili-player-placeholder-bottom-right','.bpx-player-video-inputbar','.bui-button-blue'];
     const listSurfaces=['.danmaku-wrap','.bpx-docker-minor','.bpx-player-auxiliary','.bpx-player-collapse','.bui-collapse-header','.bui-collapse-body','.bpx-player-dm-management','.bpx-player-dm-function','.bpx-player-auxiliary .bpx-player-dm-wrap'];
@@ -63,7 +70,7 @@ document.querySelector('#run-tests').addEventListener('click',async event=>{
     document.querySelector('.bui-collapse-wrap').open=false;
     check(largeSurfaces.every(selector=>alpha(document.querySelector(selector))===0),'导航、标题、推荐栏及嵌套弹幕区全部零底色');
     check(alpha(document.querySelector('#nav-searchform'))<=.1&&alpha(document.querySelector('.nav-search-content'))===0&&alpha(document.querySelector('.nav-search-input'))===0,'搜索框仅一层 10% 透光底，内部无实心底');
-    check(getComputedStyle(document.querySelector('.right-container')).opacity==='1'&&getComputedStyle(document.querySelector('#protected-thumbnail')).opacity==='1','推荐栏及缩略图未通过整体透明度淡化');
+    check(getComputedStyle(document.querySelector(playlistFixture?'.playlist-container--right':'.right-container')).opacity==='1'&&getComputedStyle(document.querySelector('#protected-thumbnail')).opacity==='1','推荐栏及缩略图未通过整体透明度淡化');
     await BiliGlow.storage.set({dark:false});
     check(largeSurfaces.every(selector=>alpha(document.querySelector(selector))===0),'关闭深色背景后仍保持面板真正透明');
     await BiliGlow.storage.set({enabled:false});
@@ -129,11 +136,11 @@ document.querySelector('#cross-origin').addEventListener('click',async()=>{
 });
 
 const episodeList=document.querySelector('.video-pod__list');
-document.querySelector('.view-mode').addEventListener('click',()=>{
+document.querySelector('.view-mode')?.addEventListener('click',()=>{
   const grid=episodeList.classList.toggle('grid');episodeList.classList.toggle('list',!grid);
   episodeList.querySelectorAll('.video-pod__item').forEach(item=>{item.classList.toggle('page',grid);item.classList.toggle('normal',!grid);item.classList.toggle('simple-base-item',!grid);});
 });
-episodeList.querySelectorAll('.video-pod__item').forEach((item,index)=>item.addEventListener('click',()=>{
+episodeList?.querySelectorAll('.video-pod__item').forEach((item,index)=>item.addEventListener('click',()=>{
   episodeList.querySelectorAll('.video-pod__item').forEach(row=>{row.classList.toggle('active',row===item);row.setAttribute('aria-current',String(row===item));row.querySelector('.playing-gif').hidden=row!==item;});
   document.querySelector(`[data-scene="${index?'ocean':'aurora'}"]`).click();
 }));

@@ -1,0 +1,31 @@
+{
+  "version": "0.5.3.3",
+  "date": "2026-10-02",
+  "environment": "Chrome localhost fixture using production scripts; route hostname mapped to www.bilibili.com; not installed-extension verification",
+  "watchlater": {
+    "passed": "true",
+    "text": "✓ 稍后再看路由启动普通点播渲染\n✓ 队列外壳、条目和选中分 P 全部透光\n✓ 当前播放项保留高亮\n✓ 队列封面加载正常，保持完整透明度\n✓ 列表操作菜单保留底色\n✓ 复用普通播放页的 Shadow DOM 评论透明样式\n✓ 评论分割线与播放列表分割线同色\n✓ 评论表情菜单保留独立底色\n✓ 评论重建后自动恢复透光\n✓ 浅色模式队列仍透光\n✓ 关闭后队列与选中项恢复原底色\n✓ 点击下一项，替换播放器后继续投光且只有一个光层\n✓ 同一 video 切换视频和分 P 后持续绘制\n✓ 切换后的分 P 选中项保持透光\n✓ 稍后再看宽屏复用自动去边\n✓ 返回普通模式还原完整视频画面\n✓ 离开播放路由后清理光效与主题，首页不启用\n✓ 返回实际 /list/watchlater/ 路径恢复光效\n✓ 撤回同意立即清理光效和评论样式"
+  },
+  "playback": {
+    "passed": "true",
+    "running": false,
+    "text": "✓ 弹幕输入框、发送按钮和背后的占位底板全部透明\n✓ 实际播放器与占位播放器都没有外框阴影\n✓ 弹幕栏原生伪元素分隔线不再形成亮边\n✓ 弹幕列表外层、标题及展开内容均透明\n✓ 导航、标题、推荐栏及嵌套弹幕区全部零底色\n✓ 搜索框仅一层 10% 透光底，内部无实心底\n✓ 推荐栏及缩略图未通过整体透明度淡化\n✓ 关闭深色背景后仍保持面板真正透明\n✓ 关闭光效后恢复原有页面底色\n✓ 关闭光效恢复原生占位底板、列表底色和播放器阴影\n✓ 播放时持续更新视频光色\n✓ 暂停后停止绘制，保留光色\n✓ 光层位于页面内容下方\n✓ 宽屏自动扩散到视口两侧\n✓ 宽屏左侧占位底板也保持透明\n✓ 400% 宽屏覆盖窗口四边，并为模糊留出足够外沿\n✓ 400% 小屏也覆盖右侧推荐栏和窗口四角\n✓ 切回小屏恢复光效范围\n✓ 复现宽屏比例留白：黑底透明，画面保持比例且未裁切\n✓ 关闭氛围光恢复原生播放器黑底\n✓ 网页全屏光层进入播放器底层\n✓ 400% 网页全屏同样覆盖窗口外沿\n✓ 关闭后清理全屏宿主、光层和背景样式\n✓ 重新开启后恢复绘制\n✓ 替换播放器后重绑，只有一个光层\n✓ 播放器移除后清理光效和主题\n✓ 播放器恢复后重新生效\n✓ 帧率限制生效（8 fps 设置 / 1 秒绘制 8 次）"
+  },
+  "initialGradientFixture": {
+    "outcome": "2 of 3 initial crop checks inconclusive; one passed; deterministic textured source used for final crop test without changing production thresholds",
+    "diagnostic": {
+      "state": "宽屏环绕 · 上限 24 fps",
+      "mode": "theater",
+      "frames": 974,
+      "paused": false,
+      "ready": 4,
+      "time": 4.16281,
+      "objectFit": "contain",
+      "objectPosition": "50% 50%",
+      "transform": "none",
+      "clip": "none",
+      "fixture": "vertical",
+      "detected": null
+    }
+  }
+}

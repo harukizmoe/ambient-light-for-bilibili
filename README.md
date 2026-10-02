@@ -4,9 +4,19 @@
 
 ![扩展图标](extension/icons/128.png)
 
+## 0.5.3.3 稍后再看修复（GitHub 预发布）
+
+当前扩展版本为 `0.5.3.3`，基于 GitHub `v0.5.3.2`（`391ef5f`）。新增 `/list/watchlater/` 详情播放页支持，复用普通点播的光效设置、深色背景、透明组件、宽屏／全屏及可选自动去边。稍后再看队列、分 P 与选中项透光，封面和当前项高亮保留；连续换片、播放器替换、离开和返回时自动处理。
+
+重新加载本目录的 `extension` 后刷新详情播放页即可沿用已有设置。首页按钮打开的迷你浮窗与最终详情播放页是不同页面，本次适配后者。权限和注入域名不变，安装包见 [GitHub Release](https://github.com/tosya301/ambient-light-for-bilibili/releases/tag/v0.5.3.3)。
+
+使用下方本地预览服务器可打开 [稍后再看验证页](http://127.0.0.1:8768/demo/watchlater.html)，开启氛围光后运行点播功能和稍后再看专项自检。该页面使用合成视频及真实组件结构，不是 B 站内容副本。
+
+本次验证：43 项 Node 测试和 47 项本地浏览器检查通过；真实页面已检查路由与组件结构，更新后的扩展注入仍需重新加载后验收。详情见 [QA.txt](QA.txt)。
+
 ## 0.5.3.2 直播预览版（基于 0.5.3）
 
-基线提交 `753b8b2`，当前扩展版本 `0.5.3.2`，界面标记 `0.5.3 · LIVE 2`。通过 [GitHub Release](https://github.com/tosya301/ambient-light-for-bilibili/releases/tag/v0.5.3.2) 提供源码与安装包，保留预发布标记。
+直播适配基线提交 `753b8b2`，已发布扩展版本 `0.5.3.2`，界面标记 `0.5.3 · LIVE 2`。通过 [GitHub Release](https://github.com/tosya301/ambient-light-for-bilibili/releases/tag/v0.5.3.2) 提供源码与安装包，保留预发布标记。
 
 直播复用原有 256px 低分辨率采样、帧率上限和过渡平滑，将光投射到导航、标题、聊天区和礼物栏背后。只调整底板，不改变视频、头像、勋章、礼物图或聊天内容。直播保留完整画面，自动去边仍仅用于点播宽屏。
 
@@ -35,7 +45,7 @@
 
 ## 安装与使用
 
-下载 [GitHub 0.5.3.2 直播预览版](https://github.com/tosya301/ambient-light-for-bilibili/releases/tag/v0.5.3.2)的 `Ambient-light-for-Bilibili-0.5.3.2.zip`，解压后可本地加载。保留 0.5.3 的点播功能和评论分割线修复，新增数字直播间适配。Chrome Web Store 与 Microsoft Edge Add-ons 的 0.5.2 已于 2026-10-01 提交审核；本次只更新 GitHub，未重新提交商店。
+下载 [GitHub 0.5.3.3 稍后再看修复版](https://github.com/tosya301/ambient-light-for-bilibili/releases/tag/v0.5.3.3)的 `Ambient-light-for-Bilibili-0.5.3.3.zip`，解压后可本地加载。包含此前的点播、数字直播间适配及透明界面修复。Chrome Web Store 与 Microsoft Edge Add-ons 的 0.5.2 已于 2026-10-01 提交审核；本次只更新 GitHub，未重新提交商店。
 
 本地安装：下载本仓库，在浏览器扩展管理页打开开发者模式，选择“加载已解压的扩展”，加载 **extension** 文件夹，然后刷新 Bilibili 播放页面。
 
@@ -43,11 +53,11 @@
 
 ## 支持范围与限制
 
-面向桌面端 `www.bilibili.com/video/` 与 `www.bilibili.com/bangumi/play/`。直播为预览支持；不支持移动端或第三方嵌入播放器。Bilibili 页面更新或其他主题扩展可能影响显示。
+面向桌面端 `www.bilibili.com/video/`、`www.bilibili.com/bangumi/play/`；0.5.3.3 增加 `www.bilibili.com/list/watchlater/` 详情播放页。直播为预览支持；不支持移动端或第三方嵌入播放器。Bilibili 页面更新或其他主题扩展可能影响显示。
 
 去边仅在 Bilibili 宽屏模式启用，不在网页全屏或原生全屏启用。含字幕、复杂边框或无法读取像素时可能保留原画；不修改视频地址，不绕过受保护媒体或访问限制。
 
-验证：39 项 Node 测试通过；直播适配阶段完成 28 项本地点播与 19 项本地合成直播浏览器检查，0.5.3.2 另验证 SC、下方卡片透光、深浅色和关闭还原。真实直播页已检查组件结构，用户确认本地版本可用；这些记录不代表已完成全部浏览器宿主场景验收。Edge 宿主、原生全屏、清晰度切换、其他房间皮肤及实际设备性能仍待专项验证。详见 [QA.txt](QA.txt)。
+历史验证（0.5.3.2）：39 项 Node 测试通过；直播适配阶段完成 28 项本地点播与 19 项本地合成直播浏览器检查，0.5.3.2 另验证 SC、下方卡片透光、深浅色和关闭还原。真实直播页已检查组件结构，用户确认本地版本可用；这些记录不代表已完成全部浏览器宿主场景验收。Edge 宿主、原生全屏、清晰度切换、其他房间皮肤及实际设备性能仍待专项验证。详见 [QA.txt](QA.txt)。
 
 ## 隐私与支持
 
