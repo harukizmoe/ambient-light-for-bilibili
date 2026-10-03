@@ -70,3 +70,27 @@ test('video wide and web modes retain the 0.5.3 mapping',()=>{
   screen='web';assert.equal(P.presentation(v,'video',null).stage,container);
   screen='normal';assert.equal(P.presentation(v,'video',null).mode,'normal');
 });
+test('live web mode with a chat sidebar remains fullscreen across browser-height changes',()=>{
+  const web=element(1428,1117,body,{position:'fixed'});web.id='fullscreen-container';
+  const v=element(1428,1033,web);
+  assert.equal(P.presentation(v,'live',null,1728,1117).stage,web);
+  assert.equal(P.presentation(v,'live',null,1728,1117).mode,'fullscreen');
+  web.getBoundingClientRect=()=>({left:0,top:0,width:1428,height:910});
+  assert.equal(P.presentation(v,'live',null,1728,910).stage,web);
+  web.style.position='absolute';
+  assert.equal(P.presentation(v,'live',null,1728,910).stage,null);
+});
+test('partial fixed ancestors, mini players and offset room stages are not live web mode',()=>{
+  const web=element(500,800,body,{position:'fixed'}),v=element(500,300,web);
+  assert.equal(P.presentation(v,'live',null).stage,null,'unknown narrow fixed ancestor');
+  web.id='fullscreen-container';
+  for(const rect of [
+    {left:0,top:0,width:500,height:300},
+    {left:780,top:0,width:500,height:800},
+    {left:0,top:74,width:980,height:800},
+    {left:0,top:0,width:100,height:800}
+  ]){
+    web.getBoundingClientRect=()=>rect;
+    assert.equal(P.presentation(v,'live',null).stage,null,JSON.stringify(rect));
+  }
+});

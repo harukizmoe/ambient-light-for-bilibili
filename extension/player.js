@@ -29,11 +29,14 @@
     const native=Boolean(fullscreen&&video&&fullscreen.contains(video)&&fullscreen.tagName!=='VIDEO');
     if(native)return {stage:fullscreen,mode:'fullscreen',native};
     if(kind==='live'){
-      // Observe layout, not unstable minified player class names. Only a fixed
-      // ancestor filling the viewport can host the web-fullscreen glow.
+      // Web mode keeps a chat sidebar, so #fullscreen-container can be narrower
+      // than the viewport. Still require a fixed, top-left, full-height stage;
+      // normal players and floating mini players must not acquire a backdrop.
       for(let el=video?.parentElement;el&&el!==document.body;el=el.parentElement){
         const r=el.getBoundingClientRect();
-        if(getComputedStyle(el).position==='fixed'&&Math.abs(r.left)<=2&&Math.abs(r.top)<=2&&r.width>=width-2&&r.height>=height-2)
+        const fillsWidth=r.width>=width-2;
+        const withChat=el.id==='fullscreen-container'&&r.width>=160&&r.width<=width+2;
+        if(getComputedStyle(el).position==='fixed'&&Math.abs(r.left)<=2&&Math.abs(r.top)<=2&&r.height>=height-2&&(fillsWidth||withChat))
           return {stage:el,mode:'fullscreen',native:false};
       }
       return {stage:null,mode:'normal',native:false};

@@ -5,7 +5,7 @@
   let settings={...B.defaults},settingsReady=false,video=null,cleanVideo=()=>{},frameId=null,timerId=null,layoutId=null;
   let lastFrame=0,nextPaint=0,needsDraw=false,painted=false,visible=false,blocked=false,supported=false,layoutDirty=true,frames=0;
   let status={text:'等待播放器',error:false},ui=null,panel=null,panelHost=null,launcher=null,root=null,canvas=null,ctx=null;
-  let stage=null,mode='normal',barEffect=null,barStatus='宽屏去边已关闭';
+  let stage=null,backdrop=null,mode='normal',barEffect=null,barStatus='宽屏去边已关闭';
   let launcherPosition=null,drag=null,suppressLauncherClick=false;
   const setBarStatus=text=>{barStatus=text;panel?.setBarStatus(text);};
   let kind=P.pageKind(location);
@@ -71,7 +71,7 @@
     root.setAttribute('aria-hidden','true');
     // A negative child of the isolated body paints AFTER its background but BEFORE page content.
     root.style.cssText='position:fixed;inset:0;pointer-events:none!important;z-index:-1;overflow:hidden;contain:strict;display:none;';
-    root.dataset.version='0.5.3.6';
+    root.dataset.version='0.5.3.7';
     const shadow=root.attachShadow({mode:'open'});
     canvas=document.createElement('canvas');canvas.width=256;canvas.height=144;
     canvas.style.cssText='position:absolute;pointer-events:none;transform-origin:center;';shadow.append(canvas);
@@ -197,7 +197,7 @@
       root.style.display='block';root.style.visibility='visible';updatePlaybackStatus();
     }catch(error){
       blocked=true;root.style.display='none';cancelFrames();
-      if(kind==='live'){document.documentElement.removeAttribute('data-biliglow-active');document.documentElement.removeAttribute('data-biliglow-dark');}
+      if(kind==='live'){setStage(null);document.documentElement.removeAttribute('data-biliglow-active');document.documentElement.removeAttribute('data-biliglow-dark');}
       setStatus('此视频暂时无法生成光效，播放不受影响',true);
       console.warn('[BiliGlow] Video frame unavailable:',error.name);
     }
@@ -212,9 +212,23 @@
     setStatus(video.paused?`${label} · 已暂停`:`${label} · 上限 ${settings.fps} fps`);
   }
   function setStage(next){
-    if(stage===next)return;
-    stage?.removeAttribute('data-biliglow-stage');
-    stage=next;stage?.setAttribute('data-biliglow-stage','');
+    if(stage!==next){
+      stage?.removeAttribute('data-biliglow-stage');
+      stage=next;stage?.setAttribute('data-biliglow-stage','');
+    }
+    if(stage&&kind==='live'){
+      // The isolated stage paints this opaque base below the glow (z=-1).
+      // Cover the viewport, including the transparent chat/gift surfaces, so
+      // letterboxing cannot reveal the room header or activity feed underneath.
+      // Keep it separate from the sampled canvas: it must also cover between
+      // the first frame and first paint, and when the light has no outer space.
+      if(!backdrop){
+        backdrop=document.createElement('div');backdrop.dataset.biliglowBackdrop='';
+        backdrop.setAttribute('aria-hidden','true');
+        backdrop.style.cssText='position:fixed;inset:0;z-index:-2;background:#10141d;pointer-events:none!important;';
+      }
+      if(backdrop.parentNode!==stage)stage.append(backdrop);
+    }else backdrop?.remove();
   }
   function layout(){
     layoutDirty=false;

@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>合成直播测试 · Ambient light for Bilibili</title>
-  <link rel="stylesheet" href="../extension/page.css">
-  <link rel="stylesheet" href="live.css">
+  <link rel="stylesheet" href="../extension/page.css?v=0.5.3.7">
+  <link rel="stylesheet" href="live.css?v=0.5.3.7">
 </head>
 <body>
   <div class="room-bg" aria-hidden="true"></div>
@@ -67,9 +67,10 @@
             <span class="controls-divider"></span><button type="button" id="pause-stream">暂停画面</button><button type="button" id="stop-stream">停播 / 移除播放器</button><button type="button" id="reconnect-stream">重连直播</button>
           </div>
           <div class="control-row">
-            <button type="button" id="portrait-stream" aria-pressed="false">切换竖屏流</button><button type="button" id="web-fullscreen" aria-pressed="false">网页全屏</button><button type="button" id="replace-video">替换 video</button><button type="button" id="hidden-preview" aria-pressed="true">隐藏超大预览：已开启</button>
+            <button type="button" id="portrait-stream" aria-pressed="false">切换竖屏流</button><button type="button" id="web-fullscreen" aria-pressed="false">网页全屏</button><button type="button" id="web-chat" aria-pressed="false">网页模式 · 保留聊天</button><button type="button" id="replace-video">替换 video</button><button type="button" id="hidden-preview" aria-pressed="true">隐藏超大预览：已开启</button>
             <details class="sample-menu"><summary>菜单底色样本 ▾</summary><div class="sample-menu-panel" id="protected-menu"><strong>应保留的菜单底色</strong><p>菜单仍有不透明背景，防止选项与流光混在一起。</p><span>清晰度 · 测试项</span><span>播放线路 · 测试项</span></div></details>
             <button type="button" class="run-tests" id="run-live-tests">运行直播自检</button>
+            <button type="button" id="run-web-tests">运行网页模式回归</button>
           </div>
           <div class="test-report" id="live-test-report" data-state="idle" aria-live="polite"><div class="test-report-heading"><strong>浏览器自检</strong><output id="live-test-summary">等待运行 · 不会自动同意或保存测试参数</output></div><ol id="live-test-results"></ol></div>
           <p class="test-footnote">本页验证本地合成流、DOM 结构与生产代码的协作；不能替代真实 Bilibili 直播的播放器、线路和浏览器宿主实测。</p>
@@ -79,12 +80,13 @@
     </main>
   </div>
   <video id="hidden-preview-video" class="hidden-preview-video" muted autoplay playsinline aria-hidden="true"></video>
-  <script src="../extension/shared.js"></script>
-  <script src="../extension/player.js?v=0.5.3.5"></script>
+  <script src="../extension/shared.js?v=0.5.3.7"></script>
+  <script src="../extension/player.js?v=0.5.3.7"></script>
   <script src="../extension/preview.js"></script>
   <script src="../extension/bars.js"></script>
   <script src="../extension/bar-effects.js"></script>
-  <script src="live.js?v=0.5.3.5"></script>
-  <script src="../extension/content.js"></script>
+  <script src="live.js?v=0.5.3.7"></script>
+  <script src="../extension/content.js?v=0.5.3.7"></script>
+  <script src="live-web-tests.js?v=0.5.3.7"></script>
 </body>
 </html>

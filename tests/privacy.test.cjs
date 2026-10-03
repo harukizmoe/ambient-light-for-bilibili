@@ -113,6 +113,8 @@ function contentHarness(initial,delayed=false,live=false,options={}){
   class Element{
     constructor(tag){this.tagName=tag.toUpperCase();this.dataset={};this.style=styleObject();this.attrs=new Map();this.children=[];this.events=new Map();this.isConnected=true;this.captured=new Set();}
     append(child){if(child.parentNode)child.parentNode.children=child.parentNode.children.filter(item=>item!==child);child.parentNode=this;this.children.push(child);}
+    remove(){if(this.parentNode)this.parentNode.children=this.parentNode.children.filter(item=>item!==this);this.parentNode=null;}
+    contains(child){return child===this||this.children.some(item=>item.contains(child));}
     setAttribute(key,value){this.attrs.set(key,value);}
     removeAttribute(key){this.attrs.delete(key);}
     hasAttribute(key){return this.attrs.has(key);}
@@ -128,21 +130,25 @@ function contentHarness(initial,delayed=false,live=false,options={}){
       this.launcher.getBoundingClientRect=()=>{const style=this.host.style,width=48,height=48,left=style.left&&style.left!=='auto'?Number.parseFloat(style.left):context.innerWidth-width-Number.parseFloat(style.right||24),top=style.top&&style.top!=='auto'?Number.parseFloat(style.top):context.innerHeight-height-Number.parseFloat(style.bottom||24);return {left,top,width,height,right:left+width,bottom:top+height};};
     }
     querySelector(selector){return selector==='.holder'?this.holder:selector==='.launcher'?this.launcher:null;}
-    getContext(){return {drawImage(){counts.draws++;},globalAlpha:1};}
+    getContext(){return this.context2d??={drawImage(){counts.draws++;},globalAlpha:1};}
     setPointerCapture(id){this.captured.add(id);}
     hasPointerCapture(id){return this.captured.has(id);}
     releasePointerCapture(id){if(this.captured.delete(id))dispatch(this,'lostpointercapture',{pointerId:id});}
     focus(){this.focused=true;}
   }
-  const container=options.screen?new Element('div'):null;
+  const container=options.screen||options.liveWeb?new Element('div'):null;
   container?.setAttribute('data-screen',options.screen);
+  if(options.liveWeb){
+    container.id='fullscreen-container';container.style.position='fixed';
+    container.getBoundingClientRect=()=>({left:0,top:0,width:980,height:900});
+  }
   function createVideo(){
     const video=new Element('video');
     const videoValues={paused:false,ended:false,readyState:4,videoWidth:1920,videoHeight:1080};
     for(const [key,value] of Object.entries(videoValues))Object.defineProperty(video,key,{get(){counts.videoReads++;return value;}});
     video.getBoundingClientRect=()=>{counts.videoReads++;return {left:100,top:100,right:1060,bottom:640,width:960,height:540};};
     video.closest=selector=>selector==='.bpx-player-container'?container:null;
-    video.parentElement=container;
+    video.parentElement=container;if(container)container.append(video);
     video.requestVideoFrameCallback=fn=>{const id=++nextId;frames.set(id,fn);return id;};
     video.cancelVideoFrameCallback=id=>{counts.cancelled++;frames.delete(id);};
     return video;
@@ -159,7 +165,7 @@ function contentHarness(initial,delayed=false,live=false,options={}){
   const location=new URL(options.url||(live?'https://live.bilibili.com/25034104':'https://www.bilibili.com/video/example'));
   const context=vm.createContext({BiliGlow:api,document,location,
     window:{addEventListener(type,fn){windowEvents.set(type,fn);}},innerWidth:1280,innerHeight:900,
-    getComputedStyle:()=>({objectFit:'contain',visibility:'visible'}),performance:{now:()=>100},console,
+    getComputedStyle:el=>({objectFit:'contain',visibility:'visible',...el.style}),performance:{now:()=>100},console,
     requestAnimationFrame(fn){const id=++nextId;rafs.set(id,fn);return id;},
     setTimeout(fn){const id=++nextId;rafs.set(id,fn);return id;},clearTimeout(id){rafs.delete(id);},
     setInterval(fn){intervals.push(fn);},
@@ -169,7 +175,7 @@ function contentHarness(initial,delayed=false,live=false,options={}){
   });
   vm.runInContext(source('player.js'),context);
   vm.runInContext(source('content.js'),context);
-  return {counts,html,body,frames,video,context,barConfigurations,panelCalls,
+  return {counts,html,body,frames,video,container,context,barConfigurations,panelCalls,
     get ui(){return html.children.find(element=>'biliglowUi' in element.dataset);},
     get launcher(){return this.ui.shadowRoot.launcher;},get panelHost(){return this.ui.shadowRoot.holder;},
     pointer(type,values){return dispatch(this.launcher,type,values);},
@@ -255,6 +261,60 @@ test('blanc rooms share live consent, light toggles and SPA/player replacement l
   h.change({...settings,privacyAccepted:false});h.flush();
   assert.equal(h.html.hasAttribute('data-biliglow-active'),false);assert.equal(h.frames.size,0);
   assert.equal(h.counts.barCreates,0);
+});
+
+test('live web backdrop follows consent, mode exit, replacement and navigation without accumulating layers',async()=>{
+  const settings={privacyAccepted:true,enabled:true};
+  const h=contentHarness({enabled:true},false,true,{liveWeb:true});await h.ready();h.flush();
+  const backdrops=()=>h.container.children.filter(el=>'biliglowBackdrop' in el.dataset);
+  assert.equal(backdrops().length,0,'no backdrop before consent');
+  h.change(settings);h.flush();
+  assert.equal(backdrops().length,1);assert.equal(h.container.hasAttribute('data-biliglow-stage'),true);
+  const backdrop=backdrops()[0];
+  assert.equal(backdrop.getAttribute('aria-hidden'),'true');assert.match(backdrop.style.pointerEvents,/none/);
+  const glow=h.container.children.find(el=>'biliglowRoot' in el.dataset);
+  assert.equal(glow.dataset.mode,'fullscreen');assert.ok(h.counts.draws>0);
+  h.reconcile();h.flush();h.replaceVideo();h.reconcile();h.flush();
+  assert.equal(backdrops().length,1);assert.equal(backdrops()[0],backdrop);
+  h.change({...settings,enabled:false});h.flush();
+  assert.equal(backdrops().length,0);assert.equal(h.container.hasAttribute('data-biliglow-stage'),false);
+  h.change(settings);h.flush();assert.equal(backdrops().length,1);
+  h.container.style.position='absolute';h.reconcile();h.flush();
+  assert.equal(backdrops().length,0);assert.equal(glow.parentNode,h.body);
+  h.container.style.position='fixed';h.reconcile();h.flush();assert.equal(backdrops().length,1);
+  h.navigate('/p/eden/area-tags');h.flush();assert.equal(backdrops().length,0);
+  h.navigate('/blanc/25034104');h.flush();assert.equal(backdrops().length,1);
+  h.change({...settings,privacyAccepted:false});h.flush();assert.equal(backdrops().length,0);
+});
+
+test('live backdrop is removed immediately if sampling fails, and VOD web mode never gets it',async()=>{
+  const h=contentHarness({privacyAccepted:true,enabled:true},false,true,{liveWeb:true});await h.ready();h.flush();
+  assert.ok(h.container.children.some(el=>'biliglowBackdrop' in el.dataset));
+  const canvas=h.container.children.find(el=>'biliglowRoot' in el.dataset).shadowRoot.children[0];
+  // A source failure is handled by draw's catch, with no wait for reconcile.
+  canvas.getContext().drawImage=()=>{throw new Error('sample unavailable');};
+  h.frame(1000);h.flush();
+  assert.equal(h.container.children.some(el=>'biliglowBackdrop' in el.dataset),false);
+  assert.equal(h.container.hasAttribute('data-biliglow-stage'),false);
+  const vod=contentHarness({privacyAccepted:true,enabled:true},false,false,{screen:'web'});await vod.ready();vod.flush();
+  assert.equal(vod.container.hasAttribute('data-biliglow-stage'),true);
+  assert.equal(vod.container.children.some(el=>'biliglowBackdrop' in el.dataset),false);
+});
+
+test('switching live web/native fullscreen moves one backdrop and direct video fullscreen releases it',async()=>{
+  const h=contentHarness({privacyAccepted:true,enabled:true},false,true,{liveWeb:true});await h.ready();h.flush();
+  const doc=h.context.document,native=doc.createElement('div');
+  native.parentElement=h.container;h.container.append(native);native.append(h.video);h.video.parentElement=native;
+  const backdrop=h.container.children.find(el=>'biliglowBackdrop' in el.dataset);
+  doc.fullscreenElement=native;h.documentEvent('fullscreenchange');h.flush();
+  assert.equal(backdrop.parentNode,native);assert.equal(h.container.hasAttribute('data-biliglow-stage'),false);
+  assert.equal(native.hasAttribute('data-biliglow-stage'),true);
+  doc.fullscreenElement=null;h.documentEvent('fullscreenchange');h.flush();
+  assert.equal(backdrop.parentNode,h.container);assert.equal(native.hasAttribute('data-biliglow-stage'),false);
+  doc.fullscreenElement=h.video;h.documentEvent('fullscreenchange');h.flush();
+  assert.equal(backdrop.parentNode,null);assert.equal(h.html.hasAttribute('data-biliglow-active'),false);
+  doc.fullscreenElement=null;h.documentEvent('fullscreenchange');h.flush();
+  assert.equal(backdrop.parentNode,h.container);assert.equal(h.html.hasAttribute('data-biliglow-active'),true);
 });
 
 test('watch-later playback keeps consent gating and reuses the video-wide crop engine',async()=>{

@@ -15,7 +15,7 @@
   const stage=$('#fullscreen-container'),host=$('#live-player'),player=$('#live-player-ctnr');
   const source=document.createElement('canvas'),paint=source.getContext('2d');
   source.width=960;source.height=540;
-  let scene='pink',portrait=false,stopped=false,web=false,stream=null,animationId=null,testRunning=false;
+  let scene='pink',portrait=false,stopped=false,web=false,webChat=false,stream=null,animationId=null,testRunning=false;
   const began=performance.now();
   const colors={
     pink:{base:'#302050',left:'#f4a6ce',right:'#8976e6',light:'#ffd6dc',water:'#5f427d',ink:'#35244e'},
@@ -78,7 +78,17 @@
   function stop(){const video=currentVideo();if(video){video.pause();video.srcObject=null;video.remove();}stopped=true;updatePlaybackUI();}
   async function replace(){const old=currentVideo();if(!old)return reconnect();const next=makeVideo();old.pause();old.srcObject=null;old.replaceWith(next);stopped=false;await connect(next);updatePlaybackUI();return next;}
   function setPortrait(on){portrait=on;source.width=on?540:960;source.height=on?960:540;stage.classList.toggle('fixture-portrait',on);$('#portrait-stream').setAttribute('aria-pressed',String(on));$('#portrait-stream').textContent=on?'返回横屏流':'切换竖屏流';$('#resolution-label').textContent=`${source.width} × ${source.height} · 30 fps`;window.dispatchEvent(new Event('resize'));}
-  function setWeb(on){web=on;stage.classList.toggle('fixture-web-fullscreen',on);player.classList.toggle('webfullscreen',on);player.classList.toggle('normal',!on);player.dataset.screen=on?'web':'normal';$('#web-fullscreen').setAttribute('aria-pressed',String(on));$('#exit-web').hidden=!on;document.body.style.overflow=on?'hidden':'';window.dispatchEvent(new Event('resize'));}
+  function setWeb(on,withChat=false){
+    web=on;webChat=on&&withChat;
+    stage.classList.toggle('fixture-web-fullscreen',on);
+    document.body.classList.toggle('fixture-web-chat',webChat);
+    // The real web-player mode keeps its gift bar inside the fixed stage and
+    // its chat sidebar outside. Preserve that stacking boundary in the fixture.
+    if(webChat)stage.append($('#gift-control-vm'));else $('#player-ctnr').append($('#gift-control-vm'));
+    player.classList.toggle('webfullscreen',on);player.classList.toggle('normal',!on);player.dataset.screen=on?'web':'normal';
+    $('#web-fullscreen').setAttribute('aria-pressed',String(on&&!webChat));$('#web-chat').setAttribute('aria-pressed',String(webChat));
+    $('#exit-web').hidden=!on;document.body.style.overflow=on?'hidden':'';window.dispatchEvent(new Event('resize'));
+  }
   async function setHiddenPreview(on){const preview=$('#hidden-preview-video');preview.hidden=!on;$('#hidden-preview').setAttribute('aria-pressed',String(on));$('#hidden-preview').textContent=`隐藏超大预览：${on?'已开启':'已关闭'}`;if(on)await connect(preview);else{preview.pause();preview.srcObject=null;}}
   function error(message){$('#live-test-summary').textContent=message;}
   if(!source.captureStream){error('此浏览器不支持 Canvas captureStream，无法生成合成直播。');return;}
@@ -88,6 +98,7 @@
   $('#stop-stream').addEventListener('click',stop);$('#reconnect-stream').addEventListener('click',()=>reconnect().catch(e=>error(e.message)));
   $('#replace-video').addEventListener('click',()=>replace().catch(e=>error(e.message)));
   $('#portrait-stream').addEventListener('click',()=>setPortrait(!portrait));$('#web-fullscreen').addEventListener('click',()=>setWeb(!web));$('#exit-web').addEventListener('click',()=>setWeb(false));
+  $('#web-chat').addEventListener('click',()=>setWeb(!webChat,true));
   $('#hidden-preview').addEventListener('click',()=>setHiddenPreview($('#hidden-preview-video').hidden).catch(e=>error(e.message)));
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&web)setWeb(false);});
   const alpha=element=>{const color=getComputedStyle(element).backgroundColor;const match=color.match(/^rgba\([^,]+,[^,]+,[^,]+,\s*([\d.]+)\)$/);return color==='transparent'?0:match?Number(match[1]):1;};
@@ -97,7 +108,7 @@
     const original=await BiliGlow.storage.get(),report=$('#live-test-report'),list=$('#live-test-results'),summary=$('#live-test-summary'),button=$('#run-live-tests');
     if(!original.privacyAccepted){report.dataset.state='needs-consent';delete report.dataset.passed;summary.textContent='请先在右下角氛围光设置中阅读说明，并亲自点击同意开启。';return;}
     testRunning=true;button.disabled=true;document.body.classList.add('fixture-testing');report.dataset.state='running';delete report.dataset.passed;list.replaceChildren();summary.textContent='正在测试；请保持此页面在前台。';
-    const before={scene,portrait,web,stopped,paused:currentVideo()?.paused,hiddenPreview:!$('#hidden-preview-video').hidden,menuOpen:$('.sample-menu').open};
+    const before={scene,portrait,web,webChat,stopped,paused:currentVideo()?.paused,hiddenPreview:!$('#hidden-preview-video').hidden,menuOpen:$('.sample-menu').open};
     const results=[];
     const check=(passed,label,detail='')=>{const item=document.createElement('li');item.dataset.passed=String(passed);item.dataset.check=label;item.textContent=`${passed?'✓':'✗'} ${label}${detail?' · '+detail:''}`;list.append(item);results.push({passed,label,detail});summary.textContent=`已检查 ${results.length} 项；${results.filter(result=>!result.passed).length} 项未通过`;};
     try{
@@ -139,7 +150,7 @@
     }catch(e){check(false,'自检中断',e.message);}
     finally{
       try{
-        setWeb(before.web);setPortrait(before.portrait);setScene(before.scene);await setHiddenPreview(before.hiddenPreview);$('.sample-menu').open=before.menuOpen;
+        setWeb(before.web,before.webChat);setPortrait(before.portrait);setScene(before.scene);await setHiddenPreview(before.hiddenPreview);$('.sample-menu').open=before.menuOpen;
         if(before.stopped)stop();else{await reconnect();if(before.paused)currentVideo().pause();updatePlaybackUI();}
         await BiliGlow.storage.set(original);
         const restored=await BiliGlow.storage.get();check(Object.keys(original).every(key=>restored[key]===original[key]),'自检后完整还原原有设置');
@@ -152,6 +163,6 @@
   $('#run-live-tests').addEventListener('click',runChecks);
   // Exposed operations are the same ones as the visible controls, for reproducible
   // local browser checks. runChecks itself always enforces existing consent.
-  window.liveFixture={runChecks,setScene,setPortrait,setWeb,reconnect,stop,replace,get video(){return currentVideo();},get source(){return source;}};
+  window.liveFixture={runChecks,setScene,setPortrait,setWeb,reconnect,stop,replace,get video(){return currentVideo();},get source(){return source;},get webChat(){return webChat;}};
   window.addEventListener('pagehide',()=>{cancelAnimationFrame(animationId);stream?.getTracks().forEach(track=>track.stop());});
 })();

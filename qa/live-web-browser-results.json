@@ -1,0 +1,250 @@
+{
+  "version": "0.5.3.7",
+  "method": "Chrome local synthetic stream loading production scripts; layout and stacking reproduced from live.bilibili.com. Not installed-extension or Windows F11 verification.",
+  "webRegression": {
+    "checks": [
+      {
+        "passed": true,
+        "text": "✓ 保留 300px 聊天栏的网页模式正确识别"
+      },
+      {
+        "passed": true,
+        "text": "✓ 不透明底板覆盖整个视口，填住视频外留白"
+      },
+      {
+        "passed": true,
+        "text": "✓ 底板、氛围光、播放器按顺序绘制"
+      },
+      {
+        "passed": true,
+        "text": "✓ 底板不拦截点击或进入无障碍内容"
+      },
+      {
+        "passed": true,
+        "text": "✓ 右侧聊天仍是可交互的最上层"
+      },
+      {
+        "passed": true,
+        "text": "✓ 网页模式仍持续绘制新帧"
+      },
+      {
+        "passed": true,
+        "text": "✓ 暂停保留光色和底板且停止采样"
+      },
+      {
+        "passed": true,
+        "text": "✓ 浅色页面与零光强仍遮挡底层页面"
+      },
+      {
+        "passed": true,
+        "text": "✓ 替换播放器后恢复且不累积底板"
+      },
+      {
+        "passed": true,
+        "text": "✓ 关闭光效立即移除底板并还原原生样式"
+      },
+      {
+        "passed": true,
+        "text": "✓ 网页模式中重新开启恢复光效与遮挡"
+      },
+      {
+        "passed": true,
+        "text": "✓ 退出网页模式后恢复普通直播透光"
+      },
+      {
+        "passed": true,
+        "text": "✓ 全宽网页全屏和竖屏视频仍有底板与光效"
+      },
+      {
+        "passed": true,
+        "text": "✓ 全屏停播/移除视频后移除底板"
+      },
+      {
+        "passed": true,
+        "text": "✓ 重连直播后重新建立全屏背景"
+      }
+    ],
+    "report": {
+      "failed": "0",
+      "passed": "true",
+      "state": "complete",
+      "total": "15"
+    }
+  },
+  "liveRegression": {
+    "checks": [
+      {
+        "passed": true,
+        "text": "✓ 播放时持续采样 · 新增 16 帧"
+      },
+      {
+        "passed": true,
+        "text": "✓ 标题、礼物区与聊天底板透光"
+      },
+      {
+        "passed": true,
+        "text": "✓ 聊天文字与头像保持完整透明度 1"
+      },
+      {
+        "passed": true,
+        "text": "✓ 菜单保留不透明底色"
+      },
+      {
+        "passed": true,
+        "text": "✓ 400% 扩散覆盖视口与模糊外沿"
+      },
+      {
+        "passed": true,
+        "text": "✓ 暂停停止采样，隐藏超大预览不抢占主播放器 · 暂停期间新增 0 帧"
+      },
+      {
+        "passed": true,
+        "text": "✓ 关闭光效恢复原生底色并隐藏光层"
+      },
+      {
+        "passed": true,
+        "text": "✓ 重新开启恢复采样"
+      },
+      {
+        "passed": true,
+        "text": "✓ 替换 video 后重绑且仅有一个光层"
+      },
+      {
+        "passed": true,
+        "text": "✓ 停播移除主播放器后停止光效，忽略隐藏预览"
+      },
+      {
+        "passed": true,
+        "text": "✓ 重连直播后自动恢复采样"
+      },
+      {
+        "passed": true,
+        "text": "✓ 竖屏流继续采样并保持画面比例"
+      },
+      {
+        "passed": true,
+        "text": "✓ 网页全屏采用真实视口几何，光层挂载到 fullscreen-container"
+      },
+      {
+        "passed": true,
+        "text": "✓ 竖屏网页全屏在画面两侧保持氛围光 · 布局就绪 88 ms"
+      },
+      {
+        "passed": true,
+        "text": "✓ 反复全屏切换及时恢复新帧与覆盖 · 83 / 87 / 82 / 111 / 84 ms"
+      },
+      {
+        "passed": true,
+        "text": "✓ 直播保持原画，不应用点播自动去边"
+      },
+      {
+        "passed": true,
+        "text": "✓ 网页全屏关闭光效后清除 stage 与光层"
+      },
+      {
+        "passed": true,
+        "text": "✓ 直播采样遵守 8 fps 上限 · 1 秒绘制 8 次"
+      },
+      {
+        "passed": true,
+        "text": "✓ 自检后完整还原原有设置"
+      }
+    ],
+    "report": {
+      "failed": "0",
+      "passed": "true",
+      "state": "complete",
+      "total": "19"
+    }
+  },
+  "viewports": {
+    "fullSize": {
+      "backdrop": {
+        "bottom": 1117,
+        "height": 1117,
+        "left": 0,
+        "right": 1728,
+        "top": 0,
+        "width": 1728,
+        "x": 0,
+        "y": 0
+      },
+      "mode": "fullscreen",
+      "stage": {
+        "bottom": 1117,
+        "height": 1117,
+        "left": 0,
+        "right": 1428,
+        "top": 0,
+        "width": 1428,
+        "x": 0,
+        "y": 0
+      },
+      "video": {
+        "bottom": 1033,
+        "height": 1033,
+        "left": 0,
+        "right": 1428,
+        "top": 0,
+        "width": 1428,
+        "x": 0,
+        "y": 0
+      },
+      "viewport": [
+        1728,
+        1117
+      ]
+    },
+    "narrow": {
+      "backdrop": {
+        "bottom": 968,
+        "height": 968,
+        "left": 0,
+        "right": 917,
+        "top": 0,
+        "width": 917,
+        "x": 0,
+        "y": 0
+      },
+      "mode": "fullscreen",
+      "viewport": [
+        917,
+        968
+      ]
+    },
+    "filled": {
+      "backdrop": {
+        "bottom": 972,
+        "height": 972,
+        "left": 0,
+        "right": 1728,
+        "top": 0,
+        "width": 1728,
+        "x": 0,
+        "y": 0
+      },
+      "root": {
+        "biliglowRoot": "",
+        "frames": "1642",
+        "mode": "fullscreen",
+        "state": "画面已铺满屏幕 · 无外侧光效空间",
+        "version": "0.5.3.7"
+      },
+      "rootDisplay": "none",
+      "viewport": [
+        1728,
+        972
+      ]
+    },
+    "exit": {
+      "backdrops": 0,
+      "mode": "normal",
+      "rootParent": "BODY",
+      "viewport": [
+        1728,
+        854
+      ]
+    }
+  },
+  "logs": []
+}
