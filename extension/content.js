@@ -71,7 +71,7 @@
     root.setAttribute('aria-hidden','true');
     // A negative child of the isolated body paints AFTER its background but BEFORE page content.
     root.style.cssText='position:fixed;inset:0;pointer-events:none!important;z-index:-1;overflow:hidden;contain:strict;display:none;';
-    root.dataset.version='0.5.3.7';
+    root.dataset.version='0.5.3.8';
     const shadow=root.attachShadow({mode:'open'});
     canvas=document.createElement('canvas');canvas.width=256;canvas.height=144;
     canvas.style.cssText='position:absolute;pointer-events:none;transform-origin:center;';shadow.append(canvas);
@@ -216,10 +216,10 @@
       stage?.removeAttribute('data-biliglow-stage');
       stage=next;stage?.setAttribute('data-biliglow-stage','');
     }
-    if(stage&&kind==='live'){
+    if(stage){
       // The isolated stage paints this opaque base below the glow (z=-1).
-      // Cover the viewport, including the transparent chat/gift surfaces, so
-      // letterboxing cannot reveal the room header or activity feed underneath.
+      // Cover the viewport so letterboxing and transparent player surfaces
+      // cannot reveal the page header, recommendations or live activity feed.
       // Keep it separate from the sampled canvas: it must also cover between
       // the first frame and first paint, and when the light has no outer space.
       if(!backdrop){

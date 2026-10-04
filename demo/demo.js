@@ -1,9 +1,12 @@
 'use strict';
-const source=document.createElement('canvas');source.width=960;source.height=540;
+const portraitSource=new URLSearchParams(location.search).has('portrait');
+const source=document.createElement('canvas');source.width=portraitSource?540:960;source.height=portraitSource?960:540;
 const paint=source.getContext('2d'),player=document.querySelector('#player');
 let scene='aurora',removed=null;
 const palettes={aurora:['#071c30','#2fcbb0','#9666db'],ocean:['#061c41','#008ed9','#36cae4'],sunset:['#372238','#f9aa5b','#d95464'],daylight:['#bddbed','#fff0e6','#eaa9db']};
 function animate(ms){
+  // Keep the synthetic scene while exercising an actual 9:16 media stream.
+  paint.setTransform(source.width/960,0,0,source.height/540,0,0);
   const t=ms/1000,c=palettes[scene];paint.fillStyle=c[0];paint.fillRect(0,0,960,540);
   for(let i=0;i<4;i++){
     const x=180+i*220+Math.sin(t*.25+i)*140,y=250+Math.cos(t*.3+i)*150;

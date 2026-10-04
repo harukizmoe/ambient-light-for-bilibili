@@ -287,7 +287,7 @@ test('live web backdrop follows consent, mode exit, replacement and navigation w
   h.change({...settings,privacyAccepted:false});h.flush();assert.equal(backdrops().length,0);
 });
 
-test('live backdrop is removed immediately if sampling fails, and VOD web mode never gets it',async()=>{
+test('live backdrop is removed immediately if sampling fails',async()=>{
   const h=contentHarness({privacyAccepted:true,enabled:true},false,true,{liveWeb:true});await h.ready();h.flush();
   assert.ok(h.container.children.some(el=>'biliglowBackdrop' in el.dataset));
   const canvas=h.container.children.find(el=>'biliglowRoot' in el.dataset).shadowRoot.children[0];
@@ -296,9 +296,47 @@ test('live backdrop is removed immediately if sampling fails, and VOD web mode n
   h.frame(1000);h.flush();
   assert.equal(h.container.children.some(el=>'biliglowBackdrop' in el.dataset),false);
   assert.equal(h.container.hasAttribute('data-biliglow-stage'),false);
-  const vod=contentHarness({privacyAccepted:true,enabled:true},false,false,{screen:'web'});await vod.ready();vod.flush();
-  assert.equal(vod.container.hasAttribute('data-biliglow-stage'),true);
-  assert.equal(vod.container.children.some(el=>'biliglowBackdrop' in el.dataset),false);
+});
+
+for(const path of ['/video/BV1example','/bangumi/play/ep123','/list/watchlater/?bvid=BV1example']){
+  test(`VOD fullscreen backdrop lifecycle on ${path}`,async()=>{
+    const settings={privacyAccepted:true,enabled:true};
+    const h=contentHarness({enabled:true},false,false,{url:`https://www.bilibili.com${path}`,screen:'web'});await h.ready();h.flush();
+    const backdrops=()=>h.container.children.filter(el=>'biliglowBackdrop' in el.dataset);
+    assert.equal(backdrops().length,0,'no backdrop before consent');
+    h.change(settings);h.flush();
+    assert.equal(backdrops().length,1,'web fullscreen masks the underlying page');
+    const backdrop=backdrops()[0],glow=h.container.children.find(el=>'biliglowRoot' in el.dataset);
+    assert.equal(glow.dataset.mode,'fullscreen');assert.ok(h.counts.draws>0);
+    for(const screen of ['wide','normal']){
+      h.container.setAttribute('data-screen',screen);h.reconcile();h.flush();
+      assert.equal(backdrops().length,0,'ordinary/wide pages still transmit light');assert.equal(glow.parentNode,h.body);
+    }
+    h.container.setAttribute('data-screen','web');h.reconcile();h.flush();
+    h.change({...settings,dark:false,strength:0});h.flush();
+    assert.equal(backdrops()[0],backdrop,'base is independent of light strength and page theme');
+    h.replaceVideo();h.reconcile();h.flush();assert.equal(backdrops().length,1);
+    h.change({...settings,enabled:false});h.flush();assert.equal(backdrops().length,0);
+    h.change(settings);h.flush();assert.equal(backdrops().length,1);
+    h.navigate('/');h.flush();assert.equal(backdrops().length,0);
+    h.navigate(path);h.flush();assert.equal(backdrops().length,1);
+    h.change({...settings,privacyAccepted:false});h.flush();assert.equal(backdrops().length,0);
+  });
+}
+
+test('VOD native fullscreen moves the same backdrop; failed sampling keeps web background opaque',async()=>{
+  const h=contentHarness({privacyAccepted:true,enabled:true},false,false,{screen:'web'});await h.ready();h.flush();
+  const doc=h.context.document,native=doc.createElement('div');
+  native.parentElement=h.container;h.container.append(native);native.append(h.video);h.video.parentElement=native;
+  const backdrop=h.container.children.find(el=>'biliglowBackdrop' in el.dataset);
+  assert.ok(backdrop);
+  doc.fullscreenElement=native;h.documentEvent('fullscreenchange');h.flush();assert.equal(backdrop.parentNode,native);
+  doc.fullscreenElement=null;h.documentEvent('fullscreenchange');h.flush();assert.equal(backdrop.parentNode,h.container);
+  const glow=h.container.children.find(el=>'biliglowRoot' in el.dataset);
+  glow.shadowRoot.children[0].getContext().drawImage=()=>{throw new Error('sample unavailable');};
+  h.frame(1000);h.flush();
+  assert.equal(glow.style.display,'none');assert.equal(backdrop.parentNode,h.container,'even unavailable light must not expose page text');
+  h.container.setAttribute('data-screen','normal');h.reconcile();h.flush();assert.equal(backdrop.parentNode,null);
 });
 
 test('switching live web/native fullscreen moves one backdrop and direct video fullscreen releases it',async()=>{

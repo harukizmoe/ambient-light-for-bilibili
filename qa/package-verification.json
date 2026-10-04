@@ -1,18 +1,19 @@
 {
-  "base_commit": "615652f",
-  "version": "0.5.3.7",
-  "archive": "Ambient-light-for-Bilibili-0.5.3.7.zip",
-  "sha256": "a716c5071f9995539124f81c326d9f946cac0c42208c995cb9fcd3ff2e81541b",
-  "bytes": 240267,
+  "base_commit": "6574b905f458f9ae2afc90069090d823fc09f833",
+  "version": "0.5.3.8",
+  "archive": "Ambient-light-for-Bilibili-0.5.3.8.zip",
+  "sha256": "83a1bced8835192e358bf0e5c1f763814e0ff87f2a0e88b8f3dec3ffdb1ffac6",
+  "bytes": 240255,
   "file_count": 19,
   "archive_matches_extension_files": true,
-  "node_tests_passed": 64,
-  "browser_evidence": "qa/live-web-browser-results.json",
-  "web_mode_checks_passed": 15,
-  "existing_live_checks_passed": 19,
-  "real_bilibili_updated_extension": "Not reloaded; real 0.5.3.6 failure reproduced; new production scripts verified on faithful local synthetic fixture. Windows F11 key not tested.",
-  "permissions_unchanged": true,
-  "publication": "GitHub stable v0.5.3.7 (Latest); no store submission",
-  "release_tag": "v0.5.3.7",
-  "is_prerelease": false
+  "node_tests_passed": 68,
+  "browser_checks_passed": 77,
+  "browser_evidence": "qa/vod-web-browser-results.json",
+  "permissions_and_injection_unchanged": true,
+  "real_bilibili_updated_extension": "Not reloaded; actual site header/player stacking inspected, new renderer verified on local synthetic fixtures. Windows F11/native host/third-party extensions not retested.",
+  "release_target": {
+    "tag": "v0.5.3.8",
+    "channel": "GitHub stable",
+    "store_submission": false
+  }
 }

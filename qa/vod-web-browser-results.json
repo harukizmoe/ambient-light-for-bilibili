@@ -1,0 +1,196 @@
+{
+  "version": "0.5.3.8",
+  "date": "2026-10-04",
+  "ordinaryPortrait": {
+    "checks": [
+      "✓ 媒体源为真实 9:16 竖屏比例",
+      "✓ 普通播放保持页面透光",
+      "✓ 网页全屏光效与底板都挂在播放器内",
+      "✓ 不透明底板覆盖视口两侧与上下留白",
+      "✓ 固定顶部头像、用户名和导航位于全屏播放器后方",
+      "✓ 底板在光效之下，播放器之上仍保留内容层",
+      "✓ 底板不拦截点击且不进入无障碍内容",
+      "✓ 弹幕输入区仍可命中",
+      "✓ 画面保持完整比例且未增加缩放或裁切",
+      "✓ 竖屏网页全屏继续绘制动态光色",
+      "✓ 暂停保留光色与遮挡并停止采样",
+      "✓ 浅色页面和零光强仍遮挡底层 UI",
+      "✓ 换片/替换播放器不会叠加底板",
+      "✓ 关闭氛围光立即释放全屏底板",
+      "✓ 重新开启恢复遮挡和光效",
+      "✓ 退出全屏恢复普通页面透光",
+      "✓ 宽屏模式不添加全屏底板"
+    ],
+    "result": {
+      "failed": "0",
+      "passed": "true",
+      "state": "complete",
+      "total": "17"
+    },
+    "url": "http://127.0.0.1:8768/demo/index.html?portrait=1",
+    "version": "0.5.3.8",
+    "viewport": [
+      1728,
+      854
+    ]
+  },
+  "watchLaterPortrait": {
+    "checks": [
+      "✓ 媒体源为真实 9:16 竖屏比例",
+      "✓ 普通播放保持页面透光",
+      "✓ 网页全屏光效与底板都挂在播放器内",
+      "✓ 不透明底板覆盖视口两侧与上下留白",
+      "✓ 固定顶部头像、用户名和导航位于全屏播放器后方",
+      "✓ 底板在光效之下，播放器之上仍保留内容层",
+      "✓ 底板不拦截点击且不进入无障碍内容",
+      "✓ 弹幕输入区仍可命中",
+      "✓ 画面保持完整比例且未增加缩放或裁切",
+      "✓ 竖屏网页全屏继续绘制动态光色",
+      "✓ 暂停保留光色与遮挡并停止采样",
+      "✓ 浅色页面和零光强仍遮挡底层 UI",
+      "✓ 换片/替换播放器不会叠加底板",
+      "✓ 关闭氛围光立即释放全屏底板",
+      "✓ 重新开启恢复遮挡和光效",
+      "✓ 退出全屏恢复普通页面透光",
+      "✓ 宽屏模式不添加全屏底板"
+    ],
+    "result": {
+      "failed": "0",
+      "passed": "true",
+      "state": "complete",
+      "total": "17"
+    },
+    "url": "http://127.0.0.1:8768/demo/watchlater.html?portrait=1",
+    "version": "0.5.3.8",
+    "viewport": [
+      1728,
+      854
+    ]
+  },
+  "existingVOD": {
+    "checks": [
+      "✓ 弹幕输入框、发送按钮和背后的占位底板全部透明",
+      "✓ 实际播放器与占位播放器都没有外框阴影",
+      "✓ 弹幕栏原生伪元素分隔线不再形成亮边",
+      "✓ 弹幕列表外层、标题及展开内容均透明",
+      "✓ 导航、标题、推荐栏及嵌套弹幕区全部零底色",
+      "✓ 搜索框仅一层 10% 透光底，内部无实心底",
+      "✓ 推荐栏及缩略图未通过整体透明度淡化",
+      "✓ 关闭深色背景后仍保持面板真正透明",
+      "✓ 关闭光效后恢复原有页面底色",
+      "✓ 关闭光效恢复原生占位底板、列表底色和播放器阴影",
+      "✓ 播放时持续更新视频光色",
+      "✓ 暂停后停止绘制，保留光色",
+      "✓ 光层位于页面内容下方",
+      "✓ 宽屏自动扩散到视口两侧",
+      "✓ 宽屏左侧占位底板也保持透明",
+      "✓ 400% 宽屏覆盖窗口四边，并为模糊留出足够外沿",
+      "✓ 400% 小屏也覆盖右侧推荐栏和窗口四角",
+      "✓ 切回小屏恢复光效范围",
+      "✓ 复现宽屏比例留白：黑底透明，画面保持比例且未裁切",
+      "✓ 关闭氛围光恢复原生播放器黑底",
+      "✓ 网页全屏光层进入播放器底层",
+      "✓ 400% 网页全屏同样覆盖窗口外沿",
+      "✓ 关闭后清理全屏宿主、光层和背景样式",
+      "✓ 重新开启后恢复绘制",
+      "✓ 替换播放器后重绑，只有一个光层",
+      "✓ 播放器移除后清理光效和主题",
+      "✓ 播放器恢复后重新生效",
+      "✓ 帧率限制生效（8 fps 设置 / 1 秒绘制 8 次）"
+    ],
+    "passed": "true",
+    "url": "http://127.0.0.1:8768/demo/index.html",
+    "version": "0.5.3.8"
+  },
+  "liveWebRegression": {
+    "checks": [
+      {
+        "label": "✓ 保留 300px 聊天栏的网页模式正确识别",
+        "passed": "true"
+      },
+      {
+        "label": "✓ 不透明底板覆盖整个视口，填住视频外留白",
+        "passed": "true"
+      },
+      {
+        "label": "✓ 底板、氛围光、播放器按顺序绘制",
+        "passed": "true"
+      },
+      {
+        "label": "✓ 底板不拦截点击或进入无障碍内容",
+        "passed": "true"
+      },
+      {
+        "label": "✓ 右侧聊天仍是可交互的最上层",
+        "passed": "true"
+      },
+      {
+        "label": "✓ 网页模式仍持续绘制新帧",
+        "passed": "true"
+      },
+      {
+        "label": "✓ 暂停保留光色和底板且停止采样",
+        "passed": "true"
+      },
+      {
+        "label": "✓ 浅色页面与零光强仍遮挡底层页面",
+        "passed": "true"
+      },
+      {
+        "label": "✓ 替换播放器后恢复且不累积底板",
+        "passed": "true"
+      },
+      {
+        "label": "✓ 关闭光效立即移除底板并还原原生样式",
+        "passed": "true"
+      },
+      {
+        "label": "✓ 网页模式中重新开启恢复光效与遮挡",
+        "passed": "true"
+      },
+      {
+        "label": "✓ 退出网页模式后恢复普通直播透光",
+        "passed": "true"
+      },
+      {
+        "label": "✓ 全宽网页全屏和竖屏视频仍有底板与光效",
+        "passed": "true"
+      },
+      {
+        "label": "✓ 全屏停播/移除视频后移除底板",
+        "passed": "true"
+      },
+      {
+        "label": "✓ 重连直播后重新建立全屏背景",
+        "passed": "true"
+      }
+    ],
+    "result": {
+      "failed": "0",
+      "passed": "true",
+      "state": "complete",
+      "total": "15"
+    },
+    "url": "http://127.0.0.1:8768/demo/live.html",
+    "version": "0.5.3.8"
+  },
+  "realSiteInspection": {
+    "url": "https://www.bilibili.com/video/BV1yiar6rEDB/",
+    "screen": "web",
+    "header": {
+      "selector": ".bili-header__bar",
+      "position": "fixed",
+      "zIndex": 1002
+    },
+    "player": {
+      "selector": ".bpx-player-container",
+      "position": "relative",
+      "zIndex": 100000
+    },
+    "navigationOutsidePlayer": true
+  },
+  "limitations": [
+    "Synthetic local videos use production scripts; updated installed extension not reloaded on real Bilibili.",
+    "Native fullscreen lifecycle tested in Node harness; Windows F11 and third-party extension combinations not retested."
+  ]
+}
